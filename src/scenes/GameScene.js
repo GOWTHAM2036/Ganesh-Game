@@ -56,6 +56,7 @@ export class GameScene extends Phaser.Scene {
     }
     this.currentLevelId = this.level.id;
     this.gameState = new GameState(this.level);
+    this.isHandlingDeath = false;
 
     // Launch UI overlay scene if not already active
     if (!this.scene.isActive('UIScene')) {
@@ -121,6 +122,7 @@ export class GameScene extends Phaser.Scene {
           : 'Collect Sacred Stones and reach the Broken Entrance.');
       if (uiScene.resetUI) uiScene.resetUI(initialObjective);
       if (uiScene.updateResources) uiScene.updateResources(this.gameState.snapshot());
+      if (uiScene.updateHealthHUD) uiScene.updateHealthHUD(this.gameState.lives);
       if (uiScene.updateObjective) {
         uiScene.updateObjective(initialObjective);
       }
@@ -430,17 +432,92 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  /**
-   * Player fell into mist/abyss
-   */
-  handlePlayerDeath() {
-    this.cameras.main.shake(250, 0.015);
-    this.cameras.main.fade(300, 20, 10, 5, false, (cam, progress) => {
-      if (progress === 1) {
-        this.player.respawn(this.spawnPoint.x, this.spawnPoint.y);
-        cam.fadeIn(300);
+  /** Deducts a single life from GameState */
+  loseLife() {
+    return this.gameState ? this.gameState.loseLife() : 0;
+  }
+
+  /** Resets lives to maximum (3) */
+  resetLives() {
+    if (this.gameState) {
+      this.gameState.resetLives();
+      const uiScene = this.scene.get('UIScene');
+      if (uiScene?.updateHealthHUD) {
+        uiScene.updateHealthHUD(this.gameState.lives);
       }
-    });
+    }
+  }
+
+  /**
+   * Respawns player at starting position with temporary invulnerability
+   */
+  respawnPlayer() {
+    if (!this.player) return;
+    this.player.respawn(this.spawnPoint.x, this.spawnPoint.y);
+    if (this.cameras?.main) {
+      this.cameras.main.startFollow(this.player, true, 0.08, 0.08);
+    }
+    this.isHandlingDeath = false;
+  }
+
+  /**
+   * Displays the Game Over overlay when all 3 lives are exhausted
+   */
+  showGameOver() {
+    const uiScene = this.scene.get('UIScene');
+    if (uiScene?.showGameOver) {
+      uiScene.showGameOver();
+    }
+    this.isHandlingDeath = false;
+  }
+
+  /**
+   * Handles player death from hazards or boundaries
+   */
+  handlePlayerDeath(data = {}) {
+    if (this.isHandlingDeath || this.gameState.levelCompleted) return;
+    this.isHandlingDeath = true;
+
+    const remainingLives = this.loseLife();
+    const uiScene = this.scene.get('UIScene');
+    if (uiScene) {
+      if (uiScene.updateHealthHUD) uiScene.updateHealthHUD(remainingLives);
+      if (uiScene.updateResources) uiScene.updateResources(this.gameState.snapshot());
+    }
+
+    // Camera shake & divine impact feedback
+    if (this.cameras?.main) {
+      this.cameras.main.shake(250, 0.015);
+    }
+    if (this.shrineEmitter && this.player) {
+      this.shrineEmitter.explode(16, this.player.x, this.player.y);
+    }
+
+    if (remainingLives > 0) {
+      // Brief feedback banner
+      if (uiScene?.showFeedback) {
+        const lifeStr = remainingLives === 1 ? '1 life remaining' : `${remainingLives} lives remaining`;
+        uiScene.showFeedback(`Ganesha has fallen — ${lifeStr}`);
+      }
+
+      // Camera fade out and respawn at spawn point
+      this.cameras.main.fade(280, 16, 8, 4, false);
+      this.time.delayedCall(280, () => {
+        this.respawnPlayer();
+        if (this.cameras?.main) {
+          this.cameras.main.fadeIn(280);
+        }
+      });
+    } else {
+      // All 3 lives exhausted -> Show Game Over overlay
+      this.cameras.main.fade(350, 12, 6, 3, false);
+      this.time.delayedCall(350, () => {
+        this.showGameOver();
+        if (this.cameras?.main) {
+          this.cameras.main.fadeIn(220);
+        }
+      });
+    }
   }
 
   /**
@@ -597,10 +674,12 @@ export class GameScene extends Phaser.Scene {
     // Scene restart is queued by Phaser; ignore repeat key events until it completes.
     if (this.isRestarting) return;
     this.isRestarting = true;
+    this.isHandlingDeath = false;
 
     this.gameState.reset(this.level);
     const uiScene = this.scene.get('UIScene');
     if (uiScene) {
+      if (uiScene.hideGameOver) uiScene.hideGameOver();
       const initialObjective = this.level.id === 3
         ? 'Activate the sacred mechanisms and restore the forgotten shrine.'
         : (this.level.id === 2
@@ -608,6 +687,7 @@ export class GameScene extends Phaser.Scene {
           : 'Collect Sacred Stones and reach the Broken Entrance.');
       uiScene.resetUI(initialObjective);
       uiScene.updateResources(this.gameState.snapshot());
+      if (uiScene.updateHealthHUD) uiScene.updateHealthHUD(this.gameState.lives);
     }
 
     this.scene.restart({ levelId: this.currentLevelId || 1 });

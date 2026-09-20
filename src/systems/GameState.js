@@ -9,6 +9,9 @@ export class GameState {
   }
 
   reset(level) {
+    this.maxLives = 3;
+    this.lives = 3;
+    this.isGameOver = false;
     this.score = 0;
     this.modaks = 0;
     this.sacredStones = 0;
@@ -22,7 +25,21 @@ export class GameState {
     this.totalMechanisms = (level?.interactions?.bells?.length) || (level?.id === 3 ? 2 : 0);
     this.currentLevel = level.id;
     this.levelCompleted = false;
-    console.log('[GAME-STATE] reset: level', level.id);
+    console.log('[GAME-STATE] reset: level', level.id, 'lives:', this.lives);
+  }
+
+  loseLife() {
+    this.lives = Math.max(0, this.lives - 1);
+    if (this.lives === 0) {
+      this.isGameOver = true;
+    }
+    return this.lives;
+  }
+
+  resetLives() {
+    this.lives = this.maxLives;
+    this.isGameOver = false;
+    return this.lives;
   }
 
   collect(definition) {
@@ -48,6 +65,9 @@ export class GameState {
 
   snapshot() {
     return {
+      lives: this.lives,
+      maxLives: this.maxLives,
+      isGameOver: this.isGameOver,
       score: this.score,
       modaks: this.modaks,
       sacredStones: this.sacredStones,

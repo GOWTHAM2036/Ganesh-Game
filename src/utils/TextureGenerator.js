@@ -35,6 +35,7 @@ export class TextureGenerator {
     this.createRestorationPillarTextures(scene);
     this.createLevelTwoTextures(scene);
     this.createLevelThreeTextures(scene);
+    this.createHeartTextures(scene);
   }
 
   /**
@@ -1118,6 +1119,111 @@ export class TextureGenerator {
       for (let x = 8; x <= 40; x += 10) {
         ctx.fillRect(x - 2, 6, 4, 108);
       }
+      canvas.refresh();
+    }
+  }
+
+  /**
+   * Sacred Temple Heart Icons for Health System (26x26)
+   * heart_full: Glowing ruby-crimson gem with warm gold filigree border and celestial gleam
+   * heart_empty: Hollow dark terracotta/stone vessel with tarnished bronze border
+   */
+  static createHeartTextures(scene) {
+    const traceHeart = (ctx, cx, cy, w, h) => {
+      ctx.beginPath();
+      const topCurveH = h * 0.35;
+      ctx.moveTo(cx, cy + h * 0.28);
+      // Top left lobe
+      ctx.bezierCurveTo(cx, cy, cx - w / 2, cy, cx - w / 2, cy + topCurveH);
+      // Bottom left point
+      ctx.bezierCurveTo(cx - w / 2, cy + (h + topCurveH) / 2, cx, cy + h * 0.85, cx, cy + h);
+      // Bottom right point
+      ctx.bezierCurveTo(cx, cy + h * 0.85, cx + w / 2, cy + (h + topCurveH) / 2, cx + w / 2, cy + topCurveH);
+      // Top right lobe
+      ctx.bezierCurveTo(cx + w / 2, cy, cx, cy, cx, cy + h * 0.28);
+      ctx.closePath();
+    };
+
+    // 1. Full Sacred Heart (Glowing temple ruby with gold filigree)
+    if (!scene.textures.exists('heart_full')) {
+      const canvas = scene.textures.createCanvas('heart_full', 26, 26);
+      const ctx = canvas.getContext();
+
+      // Ambient drop shadow
+      ctx.save();
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+      ctx.shadowBlur = 4;
+      ctx.shadowOffsetY = 2;
+
+      // Ruby gradient fill
+      const grad = ctx.createLinearGradient(4, 2, 22, 24);
+      grad.addColorStop(0, '#ff4757');
+      grad.addColorStop(0.4, '#e81735');
+      grad.addColorStop(1, '#8b001a');
+      ctx.fillStyle = grad;
+      traceHeart(ctx, 13, 2, 22, 21);
+      ctx.fill();
+      ctx.restore();
+
+      // Ornate Gold Temple Border
+      ctx.strokeStyle = '#ffd700';
+      ctx.lineWidth = 1.8;
+      traceHeart(ctx, 13, 2, 22, 21);
+      ctx.stroke();
+
+      // Inner warm amber rim
+      ctx.strokeStyle = '#ff9900';
+      ctx.lineWidth = 0.8;
+      traceHeart(ctx, 13, 3, 19, 18);
+      ctx.stroke();
+
+      // Celestial specular gleam on top-left lobe
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+      ctx.beginPath();
+      ctx.ellipse(8, 7, 3.5, 2, -Math.PI / 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Gold crown apex pip at top cleft
+      ctx.fillStyle = '#ffe680';
+      ctx.beginPath();
+      ctx.arc(13, 6, 1.2, 0, Math.PI * 2);
+      ctx.fill();
+
+      canvas.refresh();
+    }
+
+    // 2. Empty / Lost Sacred Heart Vessel
+    if (!scene.textures.exists('heart_empty')) {
+      const canvas = scene.textures.createCanvas('heart_empty', 26, 26);
+      const ctx = canvas.getContext();
+
+      // Dark hollow stone/obsidian background
+      ctx.fillStyle = 'rgba(28, 14, 8, 0.85)';
+      traceHeart(ctx, 13, 2, 22, 21);
+      ctx.fill();
+
+      // Muted tarnished bronze/stone border
+      ctx.strokeStyle = 'rgba(138, 82, 41, 0.85)';
+      ctx.lineWidth = 1.6;
+      traceHeart(ctx, 13, 2, 22, 21);
+      ctx.stroke();
+
+      // Faint inner depleted contour
+      ctx.strokeStyle = 'rgba(60, 30, 15, 0.6)';
+      ctx.lineWidth = 1;
+      traceHeart(ctx, 13, 3, 19, 18);
+      ctx.stroke();
+
+      // Faint subtle crack in empty vessel
+      ctx.strokeStyle = 'rgba(160, 90, 50, 0.4)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(13, 7);
+      ctx.lineTo(12, 12);
+      ctx.lineTo(14, 15);
+      ctx.lineTo(13, 19);
+      ctx.stroke();
+
       canvas.refresh();
     }
   }

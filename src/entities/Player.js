@@ -35,6 +35,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.isGrounded = false;
     this.facingRight = true;
     this.isDead = false;
+    this.isInvulnerable = false;
+    this.invulnerabilityTween = null;
     this.isInteracting = false;
 
     // Platformer feel polish: Coyote Time & Jump Buffering
@@ -237,35 +239,103 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   /**
+   * Triggers player damage / death from hazards or obstacles.
+   * Respects celestial invulnerability window.
+   */
+  takeDamage(cause = 'hazard') {
+    if (this.isDead || this.isInvulnerable) return;
+    this.isDead = true;
+    this.setVelocity(0, 0);
+    if (this.body) {
+      this.body.stop();
+      this.body.setAllowGravity(false);
+    }
+    if (this.groundShadow) {
+      this.groundShadow.setVisible(false);
+    }
+    this.scene.events.emit('player-died', { cause });
+  }
+
+  /**
    * Called when player falls into bottom abyss
    */
   handleFallDeath() {
     if (this.isDead) return;
     this.isDead = true;
+    this.setVelocity(0, 0);
+    if (this.body) {
+      this.body.stop();
+      this.body.setAllowGravity(false);
+    }
     if (this.groundShadow) {
       this.groundShadow.setVisible(false);
     }
-    this.scene.events.emit('player-died');
+    this.scene.events.emit('player-died', { cause: 'fall' });
   }
 
   /**
-   * Reset player to starting position
+   * Reset player to designated spawn position with temporary celestial invulnerability
    */
-  respawn(spawnX, spawnY) {
+  respawn(spawnX, spawnY, invulnerableDuration = 1800) {
     this.isDead = false;
     this.isInteracting = false;
     this.setTexture('player');
     this.setOrigin(0.5, 0.5);
-    this.body.setSize(32, 54);
-    this.body.setOffset(8, 8);
+    if (this.body) {
+      this.body.reset(spawnX, spawnY);
+      this.body.setSize(32, 54);
+      this.body.setOffset(8, 8);
+      this.body.setAllowGravity(true);
+    }
     this.setPosition(spawnX, spawnY);
     this.setVelocity(0, 0);
     this.setAngle(0);
     this.setScale(1, 1);
+    this.clearTint();
+    this.setAlpha(1);
+
     if (this.groundShadow) {
       this.groundShadow.setPosition(spawnX, spawnY + 27);
       this.groundShadow.setVisible(true);
     }
+
+    this.setInvulnerable(invulnerableDuration);
+  }
+
+  /**
+   * Applies temporary celestial invulnerability with subtle pulsing glow
+   * @param {number} duration Duration in milliseconds
+   */
+  setInvulnerable(duration = 1800) {
+    this.isInvulnerable = true;
+    if (this.invulnerabilityTween) {
+      this.invulnerabilityTween.stop();
+      this.invulnerabilityTween = null;
+    }
+    if (this.invulnerabilityTimer) {
+      this.invulnerabilityTimer.remove();
+      this.invulnerabilityTimer = null;
+    }
+
+    this.invulnerabilityTween = this.scene.tweens.add({
+      targets: this,
+      alpha: 0.38,
+      duration: 130,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut'
+    });
+
+    this.invulnerabilityTimer = this.scene.time.delayedCall(duration, () => {
+      this.isInvulnerable = false;
+      if (this.invulnerabilityTween) {
+        this.invulnerabilityTween.stop();
+        this.invulnerabilityTween = null;
+      }
+      this.setAlpha(1);
+      this.clearTint();
+      this.invulnerabilityTimer = null;
+    });
   }
 
   /**
@@ -325,6 +395,14 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   destroy(fromScene) {
+    if (this.invulnerabilityTween) {
+      this.invulnerabilityTween.stop();
+      this.invulnerabilityTween = null;
+    }
+    if (this.invulnerabilityTimer) {
+      this.invulnerabilityTimer.remove();
+      this.invulnerabilityTimer = null;
+    }
     if (this.groundShadow) {
       this.groundShadow.destroy();
       this.groundShadow = null;

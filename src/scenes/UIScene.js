@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { TextureGenerator } from '../utils/TextureGenerator.js';
 
 /**
  * UIScene
@@ -14,23 +15,29 @@ export class UIScene extends Phaser.Scene {
 
     this.createHUD();
     this.createVictoryOverlay();
+    this.createGameOverOverlay();
     this.createFeedbackBanner();
 
     this.bindGameScene(this.gameScene);
     this.updateResources({ score: 0, modaks: 0, sacredStones: 0, lotuses: 0, templeCoins: 0, scriptures: 0 });
+    this.updateHealthHUD(3);
   }
 
   /** Rebinds persistent HUD listeners when the gameplay scene is restarted. */
   bindGameScene(gameScene) {
     if (this.gameScene) {
       this.gameScene.events.off('show-victory', this.showVictory, this);
+      this.gameScene.events.off('show-game-over', this.showGameOver, this);
       this.gameScene.events.off('show-interaction-feedback', this.showFeedback, this);
       this.gameScene.events.off('resources-changed', this.updateResources, this);
+      this.gameScene.events.off('health-changed', this.updateHealthHUD, this);
     }
     this.gameScene = gameScene;
     this.gameScene.events.on('show-victory', this.showVictory, this);
+    this.gameScene.events.on('show-game-over', this.showGameOver, this);
     this.gameScene.events.on('show-interaction-feedback', this.showFeedback, this);
     this.gameScene.events.on('resources-changed', this.updateResources, this);
+    this.gameScene.events.on('health-changed', this.updateHealthHUD, this);
 
     if (this.levelTitleText) {
       this.levelTitleText.setText(this.getLevelTitleString(gameScene.level));
@@ -38,6 +45,8 @@ export class UIScene extends Phaser.Scene {
     if (this.levelSubtitleText) {
       this.levelSubtitleText.setText(gameScene.level?.subtitle || 'Sacred Threshold');
     }
+    const currentLives = gameScene?.gameState?.lives ?? 3;
+    this.updateHealthHUD(currentLives);
   }
 
   /** Formats canonical level title e.g. "LEVEL 1 — BROKEN ENTRANCE" */
@@ -139,6 +148,77 @@ export class UIScene extends Phaser.Scene {
       strokeThickness: 2,
       lineSpacing: 5
     });
+
+    // Sacred Temple Health / Lives Display (Integrated near HUD counters)
+    this.createHealthHUD();
+  }
+
+  /**
+   * Health / Lives Display with 3 sacred ruby/gold heart icons
+   */
+  createHealthHUD() {
+    TextureGenerator.createHeartTextures(this);
+
+    this.healthContainer = this.add.container(485, 72);
+    this.healthBg = this.add.graphics();
+    this.healthBg.fillStyle(0x221107, 0.88);
+    this.healthBg.lineStyle(1.5, 0x8a5229, 0.9);
+    this.healthBg.fillRoundedRect(-68, -15, 136, 30, 8);
+    this.healthBg.strokeRoundedRect(-68, -15, 136, 30, 8);
+
+    // Subtle inner gold bevel
+    this.healthBg.lineStyle(1, 0xd4a373, 0.3);
+    this.healthBg.strokeRoundedRect(-66, -13, 132, 26, 6);
+
+    this.healthLabel = this.add.text(-56, 0, "LIVES", {
+      fontFamily: "'Outfit', 'Cinzel', sans-serif",
+      fontSize: '11px',
+      fontStyle: 'bold',
+      color: '#ffd280'
+    }).setOrigin(0, 0.5);
+
+    this.heartSprites = [];
+    this.maxLives = 3;
+    this.currentLives = 3;
+
+    // 3 Sacred Heart icons spaced evenly
+    const startX = -6;
+    const spacing = 24;
+    for (let i = 0; i < this.maxLives; i++) {
+      const heart = this.add.image(startX + (i * spacing), 0, 'heart_full');
+      heart.setScale(0.85);
+      this.heartSprites.push(heart);
+    }
+
+    this.healthContainer.add([this.healthBg, this.healthLabel, ...this.heartSprites]);
+  }
+
+  /**
+   * Updates health hearts display (full vs empty with pulse animation on life lost)
+   * @param {number} lives Current remaining lives
+   */
+  updateHealthHUD(lives = 3) {
+    this.currentLives = Math.max(0, Math.min(this.maxLives || 3, lives));
+    for (let i = 0; i < (this.maxLives || 3); i++) {
+      const heart = this.heartSprites?.[i];
+      if (!heart) continue;
+      const isFull = i < this.currentLives;
+      const targetTexture = isFull ? 'heart_full' : 'heart_empty';
+      if (heart.texture.key !== targetTexture) {
+        heart.setTexture(targetTexture);
+        if (!isFull) {
+          // Pulse animation on life lost
+          this.tweens.add({
+            targets: heart,
+            scaleX: 1.25,
+            scaleY: 1.25,
+            duration: 140,
+            yoyo: true,
+            ease: 'Back.easeOut'
+          });
+        }
+      }
+    }
   }
 
   /** Redraws objective badge background based on text width */
@@ -354,7 +434,7 @@ export class UIScene extends Phaser.Scene {
    * Action notification banner floating just beneath the top HUD
    */
   createFeedbackBanner() {
-    this.bannerContainer = this.add.container(640, 96);
+    this.bannerContainer = this.add.container(640, 132);
     this.bannerContainer.setDepth(200);
     this.bannerContainer.setVisible(false);
     this.bannerContainer.setAlpha(0);
@@ -515,9 +595,182 @@ export class UIScene extends Phaser.Scene {
   }
 
   /**
+   * Game Over overlay shown when all 3 lives are exhausted
+   */
+  createGameOverOverlay() {
+    TextureGenerator.createHeartTextures(this);
+
+    this.gameOverContainer = this.add.container(640, 360);
+    this.gameOverContainer.setDepth(500);
+    this.gameOverContainer.setVisible(false);
+    this.gameOverContainer.setAlpha(0);
+
+    // Dim backdrop - deep darkening
+    const dimBg = this.add.rectangle(0, 0, 1280, 720, 0x080302, 0.9);
+    dimBg.setInteractive();
+
+    // Sacred Temple Game Over Card Frame (560x360)
+    const card = this.add.graphics();
+    card.fillStyle(0x1f0e08, 0.98);
+    card.lineStyle(3, 0xa63a24, 1);
+    card.fillRoundedRect(-280, -180, 560, 360, 16);
+    card.strokeRoundedRect(-280, -180, 560, 360, 16);
+
+    // Inner bronze rim
+    card.lineStyle(1.5, 0x6b2416, 0.85);
+    card.strokeRoundedRect(-268, -168, 536, 336, 12);
+
+    // Corner decorative brackets in crimson-bronze
+    card.fillStyle(0xd94426, 1);
+    card.fillRect(-280, -180, 18, 4);
+    card.fillRect(-280, -180, 4, 18);
+    card.fillRect(262, -180, 18, 4);
+    card.fillRect(276, -180, 4, 18);
+    card.fillRect(-280, 176, 18, 4);
+    card.fillRect(-280, 162, 4, 18);
+    card.fillRect(262, 176, 18, 4);
+    card.fillRect(276, 162, 4, 18);
+
+    // Game Over Title
+    this.gameOverTitle = this.add.text(0, -125, "GAME OVER", {
+      fontFamily: "'Cinzel', Georgia, serif",
+      fontSize: '28px',
+      fontStyle: 'bold',
+      color: '#ff6b52',
+      stroke: '#140802',
+      strokeThickness: 4,
+      letterSpacing: 2
+    }).setOrigin(0.5, 0.5);
+
+    // Subtitle / Lore
+    this.gameOverSubtitle = this.add.text(0, -88, "The temple’s journey must begin again.", {
+      fontFamily: "'Cinzel', Georgia, serif",
+      fontSize: '14px',
+      fontStyle: 'bold',
+      color: '#d48866',
+      letterSpacing: 1
+    }).setOrigin(0.5, 0.5);
+
+    // Separator
+    const separator = this.add.text(0, -62, "✤   ॐ   ✤", {
+      fontFamily: 'serif',
+      fontSize: '16px',
+      color: '#a63a24'
+    }).setOrigin(0.5, 0.5);
+
+    // Depleted Lives Readout
+    this.gameOverLivesText = this.add.text(0, -26, "Lives Lost: 3 / 3", {
+      fontFamily: "'Outfit', 'Cinzel', -apple-system, sans-serif",
+      fontSize: '14px',
+      fontStyle: '600',
+      color: '#ff8a7a'
+    }).setOrigin(0.5, 0.5);
+
+    // 3 Empty Hearts visual readout on card
+    this.gameOverHearts = [];
+    const heartSpacing = 28;
+    for (let i = 0; i < 3; i++) {
+      const h = this.add.image(-heartSpacing + (i * heartSpacing), 8, 'heart_empty');
+      h.setScale(0.95);
+      this.gameOverHearts.push(h);
+    }
+
+    // Instruction Text
+    this.gameOverInstruction = this.add.text(0, 48, "Press [R] to try again", {
+      fontFamily: "'Outfit', 'Cinzel', -apple-system, sans-serif",
+      fontSize: '12.5px',
+      fontStyle: '600',
+      color: '#d4b094'
+    }).setOrigin(0.5, 0.5);
+
+    // Restart Level Button
+    this.gameOverRestartBtn = this.add.container(0, 108);
+    this.gameOverRestartBtnBg = this.add.graphics();
+    this.drawGameOverButton(this.gameOverRestartBtnBg, 0x6b2416, 0xff5a36);
+
+    const restartBtnText = this.add.text(0, 0, "RESTART LEVEL (Press R)", {
+      fontFamily: "'Cinzel', 'Outfit', sans-serif",
+      fontSize: '12px',
+      fontStyle: 'bold',
+      color: '#ffffff'
+    }).setOrigin(0.5, 0.5);
+
+    this.gameOverRestartBtn.add([this.gameOverRestartBtnBg, restartBtnText]);
+    this.gameOverRestartBtn.setSize(240, 42);
+    this.gameOverRestartBtn.setInteractive({ useHandCursor: true });
+    this.gameOverRestartBtn.on('pointerover', () => {
+      this.drawGameOverButton(this.gameOverRestartBtnBg, 0x8a2f1c, 0xff7b5a);
+    });
+    this.gameOverRestartBtn.on('pointerout', () => {
+      this.drawGameOverButton(this.gameOverRestartBtnBg, 0x6b2416, 0xff5a36);
+    });
+    this.gameOverRestartBtn.on('pointerdown', () => {
+      this.hideGameOver();
+      const gs = this.scene.get('GameScene');
+      if (gs && typeof gs.restartLevel === 'function') {
+        gs.restartLevel();
+      }
+    });
+
+    this.gameOverContainer.add([
+      dimBg, card, this.gameOverTitle, this.gameOverSubtitle, separator,
+      this.gameOverLivesText, ...this.gameOverHearts, this.gameOverInstruction,
+      this.gameOverRestartBtn
+    ]);
+  }
+
+  drawGameOverButton(graphics, fillHex, strokeHex) {
+    graphics.clear();
+    graphics.fillStyle(fillHex, 0.95);
+    graphics.lineStyle(2, strokeHex, 1);
+    graphics.fillRoundedRect(-120, -21, 240, 42, 10);
+    graphics.strokeRoundedRect(-120, -21, 240, 42, 10);
+  }
+
+  /**
+   * Shows Game Over overlay
+   */
+  showGameOver() {
+    if (this.bannerContainer) {
+      if (this.bannerTween) this.bannerTween.stop();
+      if (this.bannerTimer) this.bannerTimer.remove();
+      this.bannerContainer.setVisible(false);
+    }
+    const gs = this.scene.get('GameScene');
+    if (gs && gs.interactionManager) {
+      gs.interactionManager.clearActive();
+    }
+    this.updateHealthHUD(0);
+
+    if (!this.gameOverContainer) {
+      this.createGameOverOverlay();
+    }
+    this.gameOverContainer.setVisible(true);
+    this.tweens.killTweensOf(this.gameOverContainer);
+    this.tweens.add({
+      targets: this.gameOverContainer,
+      alpha: 1,
+      duration: 400,
+      ease: 'Sine.easeInOut'
+    });
+  }
+
+  /**
+   * Hides Game Over overlay
+   */
+  hideGameOver() {
+    if (this.gameOverContainer) {
+      this.tweens.killTweensOf(this.gameOverContainer);
+      this.gameOverContainer.setVisible(false);
+      this.gameOverContainer.setAlpha(0);
+    }
+  }
+
+  /**
    * Resets UI overlay state
    */
   resetUI(initialObjective = null) {
+    this.hideGameOver();
     if (this.victoryContainer) {
       this.victoryContainer.setVisible(false);
       this.victoryContainer.setAlpha(0);
@@ -528,6 +781,7 @@ export class UIScene extends Phaser.Scene {
       this.bannerContainer.setVisible(false);
       this.bannerContainer.setAlpha(0);
     }
+    this.updateHealthHUD(3);
     const currentLvl = this.gameScene?.level?.id || 1;
     if (currentLvl === 3) {
       this.currentObjectiveStage = 'activate_mechanisms';
