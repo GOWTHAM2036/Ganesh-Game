@@ -36,6 +36,7 @@ export class TextureGenerator {
     this.createLevelTwoTextures(scene);
     this.createLevelThreeTextures(scene);
     this.createHeartTextures(scene);
+    this.createEnvironmentalSceneryTextures(scene);
   }
 
   /**
@@ -188,36 +189,45 @@ export class TextureGenerator {
   }
 
   /**
-   * Far Sky Background with Crescent Moon and Twinkling Stars (640x720)
+   * Far Sky Backgrounds with Celestial Starfields
    */
   static createSkyTexture(scene) {
-    if (scene.textures.exists('bg_sky')) return;
-    const canvas = scene.textures.createCanvas('bg_sky', 640, 720);
-    const ctx = canvas.getContext();
+    // 1. Level 1 Twilight Sky (Deep Violet to Horizon Amber with natural starfield)
+    if (!scene.textures.exists('bg_sky')) {
+      const canvas = scene.textures.createCanvas('bg_sky', 640, 720);
+      const ctx = canvas.getContext();
 
-    // Majestic Indian Twilight Sky Gradient
-    const grad = ctx.createLinearGradient(0, 0, 0, 720);
-    grad.addColorStop(0, TEMPLE_PALETTE.skyNight);
-    grad.addColorStop(0.3, TEMPLE_PALETTE.skyIndigo);
-    grad.addColorStop(0.6, TEMPLE_PALETTE.skyTwilight);
-    grad.addColorStop(0.8, TEMPLE_PALETTE.skyHorizonAmber);
-    grad.addColorStop(0.92, TEMPLE_PALETTE.skyHorizonGold);
-    grad.addColorStop(1, TEMPLE_PALETTE.skyHorizonWarm);
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, 640, 720);
+      const grad = ctx.createLinearGradient(0, 0, 0, 720);
+      grad.addColorStop(0, '#0a0514');
+      grad.addColorStop(0.28, '#1b0f2e');
+      grad.addColorStop(0.55, '#3b1842');
+      grad.addColorStop(0.78, '#9c3818');
+      grad.addColorStop(0.9, '#cf6a22');
+      grad.addColorStop(1, '#f59b42');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 640, 720);
 
-    // Celestial Stars
-    ctx.fillStyle = 'rgba(255, 245, 210, 0.85)';
-    for (let i = 0; i < 55; i++) {
-      const sx = (i * 89) % 640;
-      const sy = (i * 43) % 310;
-      const r = (i % 4 === 0) ? 1.6 : (i % 2 === 0 ? 1.1 : 0.7);
-      ctx.beginPath();
-      ctx.arc(sx, sy, r, 0, Math.PI * 2);
-      ctx.fill();
+      ArtDirection.drawStarfield(ctx, 640, 720, 888);
+      canvas.refresh();
     }
 
-    canvas.refresh();
+    // 2. Level 2 Midnight Teal / Obsidian Sky (Courtyard of Silent Waters)
+    if (!scene.textures.exists('bg_sky_courtyard')) {
+      const canvas = scene.textures.createCanvas('bg_sky_courtyard', 640, 720);
+      const ctx = canvas.getContext();
+
+      const grad = ctx.createLinearGradient(0, 0, 0, 720);
+      grad.addColorStop(0, '#050a12');
+      grad.addColorStop(0.3, '#0c1a28');
+      grad.addColorStop(0.6, '#162e3f');
+      grad.addColorStop(0.82, '#2b3f4f');
+      grad.addColorStop(1, '#544234');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 640, 720);
+
+      ArtDirection.drawStarfield(ctx, 640, 720, 999);
+      canvas.refresh();
+    }
   }
 
   /**
@@ -280,61 +290,34 @@ export class TextureGenerator {
   }
 
   /**
-   * Distant Temple Silhouettes & Holy Mountain Ridges (960x360)
+   * Distant Temple Silhouettes & Holy Mountain Ridges (1280x360)
    */
   static createMountainsTexture(scene) {
-    if (scene.textures.exists('bg_mountains')) return;
-    const canvas = scene.textures.createCanvas('bg_mountains', 960, 360);
-    const ctx = canvas.getContext();
+    // 1. Level 1 Warm Twilight Mountains & Nagara Towers
+    if (!scene.textures.exists('bg_mountains')) {
+      const canvas = scene.textures.createCanvas('bg_mountains', 1280, 360);
+      const ctx = canvas.getContext();
+      ArtDirection.drawDistantMountainLayer(ctx, 1280, 360, {
+        theme: 'entrance',
+        towers: [140, 340, 560, 780, 1000, 1180]
+      });
+      canvas.refresh();
+    }
 
-    // Mountain silhouettes in atmospheric dusk
-    ctx.fillStyle = '#2b1226';
-    ctx.beginPath();
-    ctx.moveTo(0, 360);
-    ctx.lineTo(0, 230);
-    ctx.lineTo(110, 175);
-    ctx.lineTo(230, 245);
-    ctx.lineTo(390, 155);
-    ctx.lineTo(530, 240);
-    ctx.lineTo(670, 170);
-    ctx.lineTo(810, 255);
-    ctx.lineTo(960, 195);
-    ctx.lineTo(960, 360);
-    ctx.closePath();
-    ctx.fill();
-
-    // Distant Temple Gopuram / Shikhara Silhouettes matching Main.png
-    ctx.fillStyle = '#1c0818';
-    const shikharas = [160, 340, 520, 710, 880];
-    shikharas.forEach((sx, idx) => {
-      const h = idx % 2 === 0 ? 150 : 120;
-      const baseW = 44;
-      const baseY = 270;
-      const topY = baseY - h;
-
-      // Stepped tiered Dravidian/Kalinga tower silhouette
-      for (let s = 0; s < 5; s++) {
-        const stepW = baseW - s * 7;
-        const stepY = baseY - s * (h / 5.5);
-        ctx.fillRect(sx - stepW / 2, stepY - 14, stepW, 14);
-      }
-      // Kalasha Finial pinnacle
-      ctx.beginPath();
-      ctx.arc(sx, topY - 4, 5, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.moveTo(sx, topY - 14);
-      ctx.lineTo(sx - 2.5, topY - 4);
-      ctx.lineTo(sx + 2.5, topY - 4);
-      ctx.closePath();
-      ctx.fill();
-    });
-
-    canvas.refresh();
+    // 2. Level 2 Courtyard Ruined Towers & Misty Peaks
+    if (!scene.textures.exists('bg_mountains_courtyard')) {
+      const canvas = scene.textures.createCanvas('bg_mountains_courtyard', 1280, 360);
+      const ctx = canvas.getContext();
+      ArtDirection.drawDistantMountainLayer(ctx, 1280, 360, {
+        theme: 'courtyard',
+        towers: [110, 290, 510, 720, 930, 1120]
+      });
+      canvas.refresh();
+    }
   }
 
   /**
-   * Midground Temple Ruins, Carved Arches & Hanging Chains (960x400)
+   * Midground Temple Ruins fallback (backward-compatible)
    */
   static createRuinsTexture(scene) {
     if (scene.textures.exists('bg_ruins')) return;
@@ -342,45 +325,136 @@ export class TextureGenerator {
     const ctx = canvas.getContext();
 
     // Dark sandstone silhouette layer
-    ctx.fillStyle = 'rgba(40, 18, 14, 0.78)';
-
-    // Carved Cusped Torana Arches
+    ctx.fillStyle = 'rgba(38, 20, 16, 0.78)';
     for (let x = 60; x < 960; x += 280) {
-      // Left pillar
       ctx.fillRect(x, 90, 26, 310);
-      // Right pillar
       ctx.fillRect(x + 130, 90, 26, 310);
-      // Lintel
       ctx.fillRect(x - 6, 80, 168, 18);
-
-      // Cusped arch
       ctx.beginPath();
       ctx.arc(x + 78, 100, 76, Math.PI, 0);
       ctx.lineWidth = 22;
-      ctx.strokeStyle = 'rgba(40, 18, 14, 0.78)';
+      ctx.strokeStyle = 'rgba(38, 20, 16, 0.78)';
       ctx.stroke();
+    }
+    canvas.refresh();
+  }
 
-      // Hanging Chains from Arch
-      ctx.strokeStyle = 'rgba(30, 12, 8, 0.85)';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(x + 78, 98);
-      ctx.lineTo(x + 78, 175);
-      ctx.stroke();
-
-      // Small hanging bell silhouette
-      ctx.beginPath();
-      ctx.arc(x + 78, 180, 7, Math.PI, 0);
-      ctx.lineTo(x + 85, 192);
-      ctx.lineTo(x + 71, 192);
-      ctx.closePath();
-      ctx.fill();
+  /**
+   * Handcrafted Modular Environmental Scenery Textures
+   * Multi-layered ruins, banyan pillars, toranas, inner hall architecture, and lighting
+   */
+  static createEnvironmentalSceneryTextures(scene) {
+    // 1. Ruined Gopuram Tower (140x360)
+    if (!scene.textures.exists('ruin_gopuram')) {
+      const canvas = scene.textures.createCanvas('ruin_gopuram', 140, 360);
+      const ctx = canvas.getContext();
+      ArtDirection.drawRuinGopuram(ctx, 140, 360, {
+        stoneColor: 'rgba(42, 22, 18, 0.88)',
+        highColor: 'rgba(84, 48, 38, 0.9)',
+        shadowColor: 'rgba(20, 10, 8, 0.95)'
+      });
+      canvas.refresh();
     }
 
-    // Ruined broken wall base
-    ctx.fillRect(0, 320, 960, 80);
+    // 2. Ruined Torana Gateway (220x260)
+    if (!scene.textures.exists('ruin_torana')) {
+      const canvas = scene.textures.createCanvas('ruin_torana', 220, 260);
+      const ctx = canvas.getContext();
+      ArtDirection.drawRuinToranaGateway(ctx, 220, 260, {
+        stoneColor: 'rgba(44, 24, 20, 0.88)',
+        highColor: 'rgba(88, 52, 42, 0.9)',
+        shadowColor: 'rgba(22, 12, 10, 0.95)'
+      });
+      canvas.refresh();
+    }
 
-    canvas.refresh();
+    // 3. Ruined Colonnade Section (180x280)
+    if (!scene.textures.exists('ruin_colonnade')) {
+      const canvas = scene.textures.createCanvas('ruin_colonnade', 180, 280);
+      const ctx = canvas.getContext();
+      ArtDirection.drawRuinColonnade(ctx, 180, 280, {
+        stoneColor: 'rgba(40, 24, 20, 0.88)',
+        highColor: 'rgba(80, 50, 40, 0.9)',
+        shadowColor: 'rgba(20, 12, 10, 0.95)'
+      });
+      canvas.refresh();
+    }
+
+    // 4. Banyan Root Entwined Ruined Pillar (110x320)
+    if (!scene.textures.exists('ruin_banyan')) {
+      const canvas = scene.textures.createCanvas('ruin_banyan', 110, 320);
+      const ctx = canvas.getContext();
+      ArtDirection.drawRuinBanyanPillar(ctx, 110, 320, {
+        stoneColor: 'rgba(46, 28, 24, 0.88)',
+        highColor: 'rgba(86, 54, 44, 0.9)',
+        shadowColor: 'rgba(24, 14, 12, 0.95)'
+      });
+      canvas.refresh();
+    }
+
+    // 5. Level 3 Inner Sanctum Wall Backdrop (960x420)
+    if (!scene.textures.exists('inner_sanctum_backdrop')) {
+      const canvas = scene.textures.createCanvas('inner_sanctum_backdrop', 960, 420);
+      const ctx = canvas.getContext();
+      ArtDirection.drawInnerSanctumBackdrop(ctx, 960, 420);
+      canvas.refresh();
+    }
+
+    // 6. Level 3 Corbelled Vault Ceiling (960x120)
+    if (!scene.textures.exists('inner_vault_ceiling')) {
+      const canvas = scene.textures.createCanvas('inner_vault_ceiling', 960, 120);
+      const ctx = canvas.getContext();
+      ArtDirection.drawVaultCeiling(ctx, 960, 120);
+      canvas.refresh();
+    }
+
+    // 7. Atmospheric Horizon Fog / Depth Mist (1280x180)
+    if (!scene.textures.exists('bg_haze')) {
+      const canvas = scene.textures.createCanvas('bg_haze', 1280, 180);
+      const ctx = canvas.getContext();
+      ArtDirection.drawAtmosphericFog(ctx, 1280, 180, '#2d1428', 0.4);
+      canvas.refresh();
+    }
+
+    // 8. Courtyard Horizon Fog (1280x180)
+    if (!scene.textures.exists('bg_haze_courtyard')) {
+      const canvas = scene.textures.createCanvas('bg_haze_courtyard', 1280, 180);
+      const ctx = canvas.getContext();
+      ArtDirection.drawAtmosphericFog(ctx, 1280, 180, '#102434', 0.45);
+      canvas.refresh();
+    }
+
+    // 9. Soft Diya / Torch Light Halo (120x120)
+    if (!scene.textures.exists('diya_halo')) {
+      const canvas = scene.textures.createCanvas('diya_halo', 120, 120);
+      const ctx = canvas.getContext();
+      ArtDirection.drawDiyaLightHalo(ctx, 120, '255, 175, 45');
+      canvas.refresh();
+    }
+
+    // 10. Wall Torch Sconce for Inner Halls (32x64)
+    if (!scene.textures.exists('torch_sconce')) {
+      const canvas = scene.textures.createCanvas('torch_sconce', 32, 64);
+      const ctx = canvas.getContext();
+      ArtDirection.drawTorchSconce(ctx, 32, 64);
+      canvas.refresh();
+    }
+
+    // 11. Scenery Hanging Bell on Chain (32x96)
+    if (!scene.textures.exists('hanging_bell_scenery')) {
+      const canvas = scene.textures.createCanvas('hanging_bell_scenery', 32, 96);
+      const ctx = canvas.getContext();
+      ArtDirection.drawHangingBellScenery(ctx, 32, 96);
+      canvas.refresh();
+    }
+
+    // 12. Fallen Stone Rubble Ground Detail (64x28)
+    if (!scene.textures.exists('rubble_pile')) {
+      const canvas = scene.textures.createCanvas('rubble_pile', 64, 28);
+      const ctx = canvas.getContext();
+      ArtDirection.drawFallenRubble(ctx, 64, 28);
+      canvas.refresh();
+    }
   }
 
   /**

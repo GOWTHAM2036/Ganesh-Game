@@ -132,55 +132,226 @@ export class GameScene extends Phaser.Scene {
   /**
    * Creates multi-layered parallax temple background
    */
+  /**
+   * Spawns a gentle pulsing golden light halo for lamps, torches, and shrines
+   */
+  addLightHalo(x, y, radius = 90, alpha = 0.55) {
+    const halo = this.add.image(x, y, 'diya_halo')
+      .setOrigin(0.5, 0.5)
+      .setScale(radius / 120)
+      .setAlpha(alpha)
+      .setDepth(-25)
+      .setBlendMode(Phaser.BlendModes.ADD);
+
+    this.tweens.add({
+      targets: halo,
+      scale: (radius / 120) * 1.08,
+      alpha: alpha * 0.82,
+      duration: 1200 + Math.random() * 500,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut'
+    });
+    return halo;
+  }
+
+  /**
+   * Builds the rich, multi-layered ancient Indian temple environment
+   * with distinct parallax planes and authentic level-specific architecture
+   */
   createBackground() {
     const { CANVAS_HEIGHT } = GAME_CONFIG;
     const WORLD_WIDTH = this.level.worldWidth;
+    const isLevel1 = this.level.id === 1;
+    const isLevel2 = this.level.id === 2;
+    const isLevel3 = this.level.id === 3;
 
-    // Layer 1: Sky gradient & celestial stars
-    this.bgSky = this.add.tileSprite(0, 0, WORLD_WIDTH, CANVAS_HEIGHT, 'bg_sky')
-      .setOrigin(0, 0)
-      .setScrollFactor(0.05)
-      .setDepth(-100);
-    if (this.level.theme?.skyTint) {
-      this.bgSky.setTint(this.level.theme.skyTint);
-    }
+    if (!isLevel3) {
+      // =========================================================================
+      // OUTDOOR LEVELS (LEVEL 1: BROKEN ENTRANCE & LEVEL 2: FALLEN COURTYARD)
+      // =========================================================================
 
-    // Celestial Crescent Moon (single celestial body, slow parallax drift)
-    if (this.level.id !== 3) {
-      this.celestialMoon = this.add.image(760, 110, 'crescent_moon')
+      // Layer 1: Celestial Night Sky with Natural Starfield (Depth -120, ScrollFactor: 0.02)
+      const skyTexture = isLevel2 ? 'bg_sky_courtyard' : 'bg_sky';
+      this.bgSky = this.add.tileSprite(0, 0, WORLD_WIDTH, CANVAS_HEIGHT, skyTexture)
+        .setOrigin(0, 0)
+        .setScrollFactor(0.02)
+        .setDepth(-120);
+
+      // Layer 2: Radiant Celestial Crescent Moon (Depth -110, ScrollFactor: 0.015)
+      this.celestialMoon = this.add.image(780, 115, 'crescent_moon')
         .setOrigin(0.5, 0.5)
-        .setScrollFactor(0.01)
+        .setScrollFactor(0.015)
+        .setDepth(-110);
+
+      // Layer 3: Distant Mountain Ridges & Spire Silhouettes (Depth -95, ScrollFactor: 0.12)
+      const mountainTexture = isLevel2 ? 'bg_mountains_courtyard' : 'bg_mountains';
+      this.bgMountains = this.add.tileSprite(0, CANVAS_HEIGHT - 360, WORLD_WIDTH, 360, mountainTexture)
+        .setOrigin(0, 0)
+        .setScrollFactor(0.12)
+        .setDepth(-95);
+
+      // Layer 4: Soft Atmospheric Horizon Depth Fog (Depth -85, ScrollFactor: 0.16)
+      const hazeTexture = isLevel2 ? 'bg_haze_courtyard' : 'bg_haze';
+      this.bgHaze = this.add.tileSprite(0, CANVAS_HEIGHT - 320, WORLD_WIDTH, 180, hazeTexture)
+        .setOrigin(0, 0)
+        .setScrollFactor(0.16)
+        .setDepth(-85);
+
+      // Layer 5: Handcrafted Modular Middle-Layer Ruins (Depth -70, ScrollFactor: 0.38)
+      // Custom placement tailored to each level section to completely avoid wallpaper repetition!
+      if (isLevel1) {
+        // --- LEVEL 1: BROKEN ENTRANCE RUINS ---
+        // Section 1: Ceremonial entrance ruins
+        this.add.image(320, CANVAS_HEIGHT - 170, 'ruin_torana')
+          .setOrigin(0.5, 1).setScrollFactor(0.38).setDepth(-70).setScale(0.95);
+        this.add.image(700, CANVAS_HEIGHT - 150, 'ruin_banyan')
+          .setOrigin(0.5, 1).setScrollFactor(0.38).setDepth(-70).setScale(0.9);
+
+        // Section 2: Sunken courtyard broken colonnades & collapsed towers
+        this.add.image(1150, CANVAS_HEIGHT - 140, 'ruin_gopuram')
+          .setOrigin(0.5, 1).setScrollFactor(0.35).setDepth(-72).setScale(0.92);
+        this.add.image(1540, CANVAS_HEIGHT - 160, 'ruin_colonnade')
+          .setOrigin(0.5, 1).setScrollFactor(0.38).setDepth(-70);
+        this.add.image(1920, CANVAS_HEIGHT - 150, 'ruin_banyan')
+          .setOrigin(0.5, 1).setScrollFactor(0.38).setDepth(-70).setScale(0.95);
+
+        // Section 3: The Grand Ascent & Sanctum Spire
+        this.add.image(2380, CANVAS_HEIGHT - 140, 'ruin_gopuram')
+          .setOrigin(0.5, 1).setScrollFactor(0.35).setDepth(-72).setScale(1.05);
+        this.add.image(2840, CANVAS_HEIGHT - 170, 'ruin_torana')
+          .setOrigin(0.5, 1).setScrollFactor(0.38).setDepth(-70);
+        this.add.image(3300, CANVAS_HEIGHT - 160, 'ruin_colonnade')
+          .setOrigin(0.5, 1).setScrollFactor(0.38).setDepth(-70).setScale(0.9);
+        this.add.image(3720, CANVAS_HEIGHT - 140, 'ruin_gopuram')
+          .setOrigin(0.5, 1).setScrollFactor(0.35).setDepth(-72).setScale(1.15);
+      } else if (isLevel2) {
+        // --- LEVEL 2: FALLEN COURTYARD RUINS ---
+        // Section A: Ruined entrance gate & banyan colonnade
+        this.add.image(360, CANVAS_HEIGHT - 170, 'ruin_torana')
+          .setOrigin(0.5, 1).setScrollFactor(0.38).setDepth(-70).setScale(0.95);
+        this.add.image(620, CANVAS_HEIGHT - 150, 'ruin_banyan')
+          .setOrigin(0.5, 1).setScrollFactor(0.38).setDepth(-70);
+
+        // Section B & C: Towering ruined towers and deep colonnade corridors
+        this.add.image(960, CANVAS_HEIGHT - 160, 'ruin_colonnade')
+          .setOrigin(0.5, 1).setScrollFactor(0.38).setDepth(-70);
+        this.add.image(1360, CANVAS_HEIGHT - 140, 'ruin_gopuram')
+          .setOrigin(0.5, 1).setScrollFactor(0.35).setDepth(-72).setScale(1.1);
+        this.add.image(1740, CANVAS_HEIGHT - 150, 'ruin_banyan')
+          .setOrigin(0.5, 1).setScrollFactor(0.38).setDepth(-70).setScale(0.95);
+        this.add.image(2100, CANVAS_HEIGHT - 170, 'ruin_torana')
+          .setOrigin(0.5, 1).setScrollFactor(0.38).setDepth(-70).setScale(0.9);
+
+        // Section D & E: Pre-bridge ruins & dramatic sanctum framing
+        this.add.image(2480, CANVAS_HEIGHT - 160, 'ruin_colonnade')
+          .setOrigin(0.5, 1).setScrollFactor(0.38).setDepth(-70);
+        this.add.image(2920, CANVAS_HEIGHT - 140, 'ruin_gopuram')
+          .setOrigin(0.5, 1).setScrollFactor(0.35).setDepth(-72).setScale(1.05);
+        this.add.image(3360, CANVAS_HEIGHT - 140, 'ruin_gopuram')
+          .setOrigin(0.5, 1).setScrollFactor(0.35).setDepth(-72).setScale(1.2);
+      }
+
+      // Layer 6: Near Midground Pillars (Depth -55, ScrollFactor: 0.65)
+      const bgPillarPositions = this.level.theme.backgroundPillars || [];
+      const pillarTint = this.level.theme?.pillarTint || 0x8a5229;
+      bgPillarPositions.forEach((px, i) => {
+        const texture = (i % 2 === 0) ? 'broken_pillar' : 'pillar';
+        const p = this.add.image(px, CANVAS_HEIGHT - 190, texture)
+          .setOrigin(0.5, 1)
+          .setAlpha(0.65)
+          .setTint(pillarTint)
+          .setScrollFactor(0.65)
+          .setDepth(-55);
+        if (texture === 'pillar') p.setScale(0.85);
+      });
+
+    } else {
+      // =========================================================================
+      // ENCLOSED TEMPLE INTERIOR (LEVEL 3: THE INNER HALLS)
+      // =========================================================================
+
+      // Layer 1: Massive Corbelled Stone Vault Ceiling (Depth -110, ScrollFactor: 0.08)
+      this.bgVaultCeiling = this.add.tileSprite(0, 0, WORLD_WIDTH, 120, 'inner_vault_ceiling')
+        .setOrigin(0, 0)
+        .setScrollFactor(0.08)
+        .setDepth(-110);
+
+      // Layer 2: Monumental Carved Sanctum Stone Wall Backdrop (Depth -90, ScrollFactor: 0.28)
+      this.bgSanctumWall = this.add.tileSprite(0, 110, WORLD_WIDTH, 420, 'inner_sanctum_backdrop')
+        .setOrigin(0, 0)
+        .setScrollFactor(0.28)
         .setDepth(-90);
+
+      // Layer 3: Atmospheric Chiaroscuro Shadow Gradient (Depth -80, ScrollFactor: 0)
+      this.bgShadowVignette = this.add.graphics();
+      this.bgShadowVignette.setDepth(-80);
+      this.bgShadowVignette.setScrollFactor(0);
+      this.bgShadowVignette.fillGradientStyle(0x040206, 0x040206, 0x0a0408, 0x0a0408, 0.5, 0.5, 0.75, 0.75);
+      this.bgShadowVignette.fillRect(0, 0, 1280, CANVAS_HEIGHT);
+
+      // Layer 4: Wall-Mounted Bronze Torch Sconces with Radiant Halos (Depth -50, ScrollFactor: 0.55)
+      const torchXPositions = [200, 480, 760, 1080, 1380, 1680, 1960, 2260, 2560, 2780];
+      torchXPositions.forEach(tx => {
+        const ty = CANVAS_HEIGHT - 380;
+        this.add.image(tx, ty, 'torch_sconce')
+          .setOrigin(0.5, 0.5)
+          .setScrollFactor(0.55)
+          .setDepth(-50);
+        
+        // Soft golden torchlight halo
+        const halo = this.add.image(tx, ty - 12, 'diya_halo')
+          .setOrigin(0.5, 0.5)
+          .setScale(0.85)
+          .setAlpha(0.6)
+          .setScrollFactor(0.55)
+          .setDepth(-51)
+          .setBlendMode(Phaser.BlendModes.ADD);
+
+        this.tweens.add({
+          targets: halo,
+          scale: 0.95,
+          alpha: 0.75,
+          duration: 900 + Math.random() * 400,
+          yoyo: true,
+          repeat: -1,
+          ease: 'Sine.easeInOut'
+        });
+      });
+
+      // Layer 5: Hanging Sacred Bells with Bronze Link Chains (Depth -45, ScrollFactor: 0.6)
+      const hangingBellsX = [340, 620, 920, 1220, 1540, 1840, 2140, 2440];
+      hangingBellsX.forEach((bx, i) => {
+        const by = CANVAS_HEIGHT - 390;
+        const bell = this.add.image(bx, by, 'hanging_bell_scenery')
+          .setOrigin(0.5, 0)
+          .setScrollFactor(0.6)
+          .setDepth(-45)
+          .setScale(0.9);
+
+        // Gentle subtle swinging sway on hanging bells
+        this.tweens.add({
+          targets: bell,
+          angle: (i % 2 === 0 ? 3 : -3),
+          duration: 2200 + (i * 200),
+          yoyo: true,
+          repeat: -1,
+          ease: 'Sine.easeInOut'
+        });
+      });
+
+      // Layer 6: Heavy Carved Sanctum Backdrop Columns (Depth -40, ScrollFactor: 0.75)
+      const innerColPositions = this.level.theme.backgroundPillars || [];
+      innerColPositions.forEach(px => {
+        this.add.image(px, CANVAS_HEIGHT - 170, 'pillar')
+          .setOrigin(0.5, 1)
+          .setAlpha(0.7)
+          .setTint(0x381f14)
+          .setScrollFactor(0.75)
+          .setDepth(-40)
+          .setScale(0.9);
+      });
     }
-
-    // Layer 2: Holy mountain ridges and distant temple shikharas
-    this.bgMountains = this.add.tileSprite(0, CANVAS_HEIGHT - 360, WORLD_WIDTH, 360, 'bg_mountains')
-      .setOrigin(0, 0)
-      .setScrollFactor(0.18)
-      .setDepth(-80);
-
-    // Layer 3: Ruined arches and dilapidated stone corridors
-    this.bgRuins = this.add.tileSprite(0, CANVAS_HEIGHT - 400, WORLD_WIDTH, 400, 'bg_ruins')
-      .setOrigin(0, 0)
-      .setScrollFactor(0.4)
-      .setDepth(-70);
-    if (this.level.theme?.ruinsTint) {
-      this.bgRuins.setTint(this.level.theme.ruinsTint);
-    }
-
-    // Midground atmospheric backdrop pillars
-    const bgPillarPositions = this.level.theme.backgroundPillars || [];
-    const pillarTint = this.level.theme?.pillarTint || 0x996644;
-    bgPillarPositions.forEach((px, i) => {
-      const texture = (i % 2 === 0) ? 'broken_pillar' : 'pillar';
-      const p = this.add.image(px, CANVAS_HEIGHT - 220, texture)
-        .setOrigin(0.5, 1)
-        .setAlpha(0.6)
-        .setTint(pillarTint)
-        .setScrollFactor(0.6)
-        .setDepth(-60);
-      if (texture === 'pillar') p.setScale(0.85);
-    });
   }
 
   /**
@@ -276,7 +447,9 @@ export class GameScene extends Phaser.Scene {
       this.add.image(80, 580, 'pillar').setOrigin(0.5, 1);
       this.add.image(480, 580, 'pillar').setOrigin(0.5, 1);
       this.add.image(120, 580, 'temple_lamp_lit').setOrigin(0.5, 1);
+      this.addLightHalo(120, 550, 95, 0.65);
       this.add.image(280, 290, 'marigold_garland').setOrigin(0.5, 0);
+      this.add.image(420, 580, 'rubble_pile').setOrigin(0.5, 1).setDepth(2);
 
       // Chasm 1: Accessible stepping platforms with gentle elevation steps and short gaps
       floating.slice(0, 2).forEach(([x, y]) => createFloatingPlatform(x, y));
@@ -285,6 +458,7 @@ export class GameScene extends Phaser.Scene {
       // SECTION 2: The Sunken Courtyard & Broken Colonnade Chasm
       // Note: The interactive Broken Entrance Pillar is placed at x: 1350, y: 580
       this.add.image(1720, 580, 'broken_pillar').setOrigin(0.5, 1);
+      this.add.image(1680, 580, 'rubble_pile').setOrigin(0.5, 1).setDepth(2);
 
       // Chasm 2: Stepping stones & floating platforms bridging the chasm smoothly
       floating.slice(2, 4).forEach(([x, y]) => createFloatingPlatform(x, y));
@@ -293,6 +467,7 @@ export class GameScene extends Phaser.Scene {
       // SECTION 3: The Ascent to the Sacred Sanctum
       this.add.image(2580, 540, 'pillar').setOrigin(0.5, 1);
       this.add.image(2820, 540, 'broken_pillar').setOrigin(0.5, 1);
+      this.add.image(2760, 540, 'rubble_pile').setOrigin(0.5, 1).setDepth(2);
 
       // Final Grand Ascent: Stairway of floating platforms & flat-top pillar platforms
       floating.slice(4).forEach(([x, y]) => createFloatingPlatform(x, y));
@@ -303,6 +478,8 @@ export class GameScene extends Phaser.Scene {
       this.add.image(3780, 440, 'pillar').setOrigin(0.5, 1);
       this.add.image(3540, 440, 'temple_lamp_lit').setOrigin(0.5, 1);
       this.add.image(3720, 440, 'temple_lamp_lit').setOrigin(0.5, 1);
+      this.addLightHalo(3540, 410, 95, 0.65);
+      this.addLightHalo(3720, 410, 95, 0.65);
       this.add.image(3630, 200, 'marigold_garland').setOrigin(0.5, 0).setScale(1.25);
     } else {
       // Level 2 Platforms
@@ -314,8 +491,14 @@ export class GameScene extends Phaser.Scene {
         this.add.image(1420, 580, 'temple_lamp_lit').setOrigin(0.5, 1);
         this.add.image(2560, 580, 'temple_lamp_lit').setOrigin(0.5, 1);
         this.add.image(3200, 580, 'temple_lamp_lit').setOrigin(0.5, 1);
+        this.addLightHalo(1420, 550, 95, 0.65);
+        this.addLightHalo(2560, 550, 95, 0.65);
+        this.addLightHalo(3200, 550, 95, 0.65);
         this.add.image(220, 310, 'marigold_garland').setOrigin(0.5, 0);
         this.add.image(3260, 310, 'marigold_garland').setOrigin(0.5, 0);
+        this.add.image(640, 580, 'rubble_pile').setOrigin(0.5, 1).setDepth(2);
+        this.add.image(2040, 580, 'rubble_pile').setOrigin(0.5, 1).setDepth(2);
+        this.add.image(2700, 580, 'rubble_pile').setOrigin(0.5, 1).setDepth(2);
       }
 
       // Water surfaces under chasms
@@ -347,8 +530,9 @@ export class GameScene extends Phaser.Scene {
     // Spawn Lord Ganesha player
     this.player = new Player(this, this.spawnPoint.x, this.spawnPoint.y);
 
-    // Spawn Temple Shrine Altar firmly on final terrace
+    // Spawn Temple Shrine Altar firmly on final terrace with divine aura
     this.shrine = new TempleShrine(this, this.level.goal.x, this.level.goal.y);
+    this.addLightHalo(this.level.goal.x, this.level.goal.y - 45, 150, 0.75);
 
     // Collisions with platforms
     this.physics.add.collider(this.player, this.platforms);
