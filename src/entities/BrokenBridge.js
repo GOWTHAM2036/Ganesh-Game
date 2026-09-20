@@ -49,11 +49,11 @@ export class BrokenBridge extends RestorationPoint {
     const centerX = span.startX + spanWidth / 2;
     this.centerX = centerX;
 
-    // 1. Visual bridge spanning across the sunken chasm
-    this.bridgeSprite = scene.add.image(centerX, span.y - 12, 'bridge_broken').setOrigin(0.5, 0.5);
+    // 1. Visual bridge spanning across the sunken chasm perfectly aligned with platform deck at span.y
+    this.bridgeSprite = scene.add.image(centerX, span.y, 'bridge_broken').setOrigin(0.5, 0);
     this.bridgeSprite.setDepth(1);
 
-    // 2. Seamless ground platform slabs across the entire 320px bridge span (2740 to 3060)
+    // 2. Seamless ground platform slabs across the entire 320px bridge span (1980 to 2300)
     // Slabs match identical physics and height (y = 580) of Terrace D and Terrace E.
     this.bridgeSlabs = [];
     if (scene.platforms) {
@@ -140,6 +140,7 @@ export class BrokenBridge extends RestorationPoint {
       this.bridgeSlabs.forEach(slab => {
         if (slab && slab.body) {
           slab.body.enable = true;
+          slab.refreshBody();
         }
       });
 
@@ -168,6 +169,7 @@ export class BrokenBridge extends RestorationPoint {
     this.bridgeSlabs.forEach(slab => {
       if (slab && slab.body) {
         slab.body.enable = false;
+        slab.refreshBody();
       }
     });
 

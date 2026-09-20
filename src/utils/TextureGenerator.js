@@ -3,7 +3,7 @@ import { ArtDirection, TEMPLE_PALETTE } from './ArtDirection.js';
 /**
  * TextureGenerator
  * Handcrafted 2D Indian Temple Art Direction Texture Generator for Ganesha's Broken Temple.
- * Replaces prototype geometric placeholders with rich, cohesive Indian temple stonecraft,
+ * Generates rich, cohesive Indian temple stonecraft,
  * carved pillars, sacred collectibles, authentic deity motifs, and layered atmospheric environments.
  */
 export class TextureGenerator {

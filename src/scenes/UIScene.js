@@ -1,9 +1,11 @@
 import Phaser from 'phaser';
 import { TextureGenerator } from '../utils/TextureGenerator.js';
+import { TYPOGRAPHY } from '../utils/Typography.js';
 
 /**
  * UIScene
- * Renders UI overlays, HUD headers, and victory popups independent of camera movement.
+ * Renders UI overlays, HUD headers, feedback banners, and victory/game over popups
+ * completely independent of camera movement and responsive to viewport scale.
  */
 export class UIScene extends Phaser.Scene {
   constructor() {
@@ -57,125 +59,133 @@ export class UIScene extends Phaser.Scene {
   }
 
   /**
-   * Top HUD display with temple title, objective reminder, and quick controls
+   * Top HUD display: Compact, elegant two-row layout with icon badges, centered objective,
+   * 3-life heart counter, and quick restart control.
    */
   createHUD() {
     UIScene.hudCount = (UIScene.hudCount || 0) + 1;
     console.log('[HUD] initialized:', UIScene.hudCount);
 
-    // Top Bar Background Gradient
+    TextureGenerator.createCollectibleTextures(this);
+    TextureGenerator.createHeartTextures(this);
+
+    // Top Bar Background Gradient (Height 80px - compact and unobtrusive)
     const topBar = this.add.graphics();
-    topBar.fillGradientStyle(0x190c06, 0x190c06, 0x190c06, 0x190c06, 0.88, 0.88, 0, 0);
-    topBar.fillRect(0, 0, 1280, 104);
+    topBar.fillGradientStyle(0x190c06, 0x190c06, 0x190c06, 0x190c06, 0.92, 0.92, 0, 0);
+    topBar.fillRect(0, 0, 1280, 80);
+
     // Decorative gold bottom rim
     topBar.lineStyle(2, 0xffb84d, 0.85);
-    topBar.lineBetween(0, 104, 1280, 104);
-    topBar.lineStyle(1, 0x8a5229, 0.6);
-    topBar.lineBetween(0, 106, 1280, 106);
+    topBar.lineBetween(0, 80, 1280, 80);
+    topBar.lineStyle(1, 0x8a5229, 0.5);
+    topBar.lineBetween(0, 82, 1280, 82);
 
-    // Level Title (Majestic inscribed decorative serif)
+    // --- ROW 1: Level Title (Left), Objective Banner (Center), Restart Button (Right) ---
+
+    // 1. Level Title (Majestic inscribed decorative serif)
     const titleStr = this.getLevelTitleString(this.gameScene?.level);
-    this.levelTitleText = this.add.text(28, 15, titleStr, {
-      fontFamily: "'Cinzel Decorative', 'Cinzel', Georgia, serif",
-      fontSize: '18px',
-      fontStyle: 'bold',
-      color: '#ffd066',
-      stroke: '#140802',
-      strokeThickness: 3
-    });
+    this.levelTitleText = this.add.text(24, 13, titleStr, TYPOGRAPHY.STYLES.LEVEL_HEADER);
 
-    this.levelSubtitleText = this.add.text(28, 39, this.gameScene?.level?.subtitle || 'Sacred Threshold', {
-      fontFamily: "'Cinzel', Georgia, serif",
-      fontSize: '12.5px',
-      fontStyle: '600',
-      color: '#d4a373'
-    });
+    this.levelSubtitleText = this.add.text(24, 33, this.gameScene?.level?.subtitle || 'Sacred Threshold', TYPOGRAPHY.STYLES.LEVEL_SUBTITLE);
 
-    // Objective Reminder (Centered badge with high-contrast readable font)
+    // 2. Objective Banner (Centered pill badge with high-contrast readable font)
     this.currentObjectiveStage = 'reach_entrance';
-    this.objectiveContainer = this.add.container(680, 26);
+    this.objectiveContainer = this.add.container(640, 23);
     this.objectiveBg = this.add.graphics();
-    this.objectiveText = this.add.text(0, 0, "GOAL: Collect Sacred Stones and reach the Broken Entrance.", {
-      fontFamily: "'Outfit', 'Cinzel', -apple-system, sans-serif",
-      fontSize: '12.5px',
-      fontStyle: '600',
-      color: '#fff0cc',
-      stroke: '#140802',
-      strokeThickness: 2
-    }).setOrigin(0.5, 0.5);
+    this.objectiveText = this.add.text(0, 0, "GOAL: Collect Sacred Stones and reach the Broken Entrance.", TYPOGRAPHY.STYLES.OBJECTIVE_TEXT).setOrigin(0.5, 0.5);
 
     this.redrawObjectiveBadge();
     this.objectiveContainer.add([this.objectiveBg, this.objectiveText]);
 
-    // Restart Pill (Top-Right)
-    const controlsContainer = this.add.container(1150, 48);
+    // 3. Restart Button Pill (Top-Right: x = 1190, y = 23)
+    this.restartContainer = this.add.container(1190, 23);
     const bgPill = this.add.graphics();
-    const drawPill = (hover = false) => {
+    const drawRestartPill = (hover = false) => {
       bgPill.clear();
-      bgPill.fillStyle(hover ? 0x542810 : 0x3a1d0e, 0.92);
+      bgPill.fillStyle(hover ? 0x542810 : 0x361a0c, 0.92);
       bgPill.lineStyle(1.5, hover ? 0xffb84d : 0x8a5229, 1);
-      bgPill.fillRoundedRect(-95, -16, 190, 32, 16);
-      bgPill.strokeRoundedRect(-95, -16, 190, 32, 16);
+      bgPill.fillRoundedRect(-68, -13, 136, 26, 13);
+      bgPill.strokeRoundedRect(-68, -13, 136, 26, 13);
     };
-    drawPill(false);
+    drawRestartPill(false);
 
-    const restartText = this.add.text(0, 0, "Restart: [R] / Click", {
-      fontFamily: "'Outfit', 'Cinzel', -apple-system, sans-serif",
-      fontSize: '12px',
-      fontStyle: '600',
-      color: '#ffd280'
-    }).setOrigin(0.5, 0.5);
+    const restartText = this.add.text(0, 0, "↺ RESTART [R]", TYPOGRAPHY.STYLES.RESTART_BUTTON).setOrigin(0.5, 0.5);
 
-    controlsContainer.add([bgPill, restartText]);
-    controlsContainer.setSize(190, 32);
-    controlsContainer.setInteractive({ useHandCursor: true });
-    controlsContainer.on('pointerover', () => drawPill(true));
-    controlsContainer.on('pointerout', () => drawPill(false));
-    controlsContainer.on('pointerdown', () => {
+    this.restartContainer.add([bgPill, restartText]);
+    this.restartContainer.setSize(136, 26);
+    this.restartContainer.setInteractive({ useHandCursor: true });
+    this.restartContainer.on('pointerover', () => drawRestartPill(true));
+    this.restartContainer.on('pointerout', () => drawRestartPill(false));
+    this.restartContainer.on('pointerdown', () => {
       const gs = this.scene.get('GameScene');
       if (gs && typeof gs.restartLevel === 'function') {
         gs.restartLevel();
       }
     });
 
-    // Resource Counters (Crisp readable typography)
-    this.resourceText = this.add.text(28, 60, '', {
-      fontFamily: "'Outfit', 'Cinzel', -apple-system, sans-serif",
-      fontSize: '12.5px',
-      fontStyle: '600',
-      color: '#ffe8b3',
-      stroke: '#140802',
-      strokeThickness: 2,
-      lineSpacing: 5
-    });
+    // --- ROW 2: Collectible Badges with Icons (Left) & Sacred Lives Counter (Right) ---
 
-    // Sacred Temple Health / Lives Display (Integrated near HUD counters)
+    // 4. Resource Badge Containers with Handcrafted Miniature Icons
+    this.resourceContainer = this.add.container(24, 57);
+
+    // Modak icon & counter
+    this.modakIcon = this.add.image(8, 0, 'collectible_modak').setScale(0.52).setOrigin(0.5, 0.5);
+    this.modakText = this.add.text(22, 0, '0', TYPOGRAPHY.STYLES.HUD_VALUE).setOrigin(0, 0.5);
+
+    // Sacred Stone icon & counter
+    this.stoneIcon = this.add.image(62, 0, 'collectible_sacred_stone').setScale(0.52).setOrigin(0.5, 0.5);
+    this.stoneText = this.add.text(76, 0, '0', TYPOGRAPHY.STYLES.HUD_VALUE).setOrigin(0, 0.5);
+
+    // Lotus icon & counter
+    this.lotusIcon = this.add.image(116, 0, 'collectible_lotus').setScale(0.52).setOrigin(0.5, 0.5);
+    this.lotusText = this.add.text(130, 0, '0', TYPOGRAPHY.STYLES.HUD_VALUE).setOrigin(0, 0.5);
+
+    // Temple Coin icon & counter
+    this.coinIcon = this.add.image(170, 0, 'collectible_temple_coin').setScale(0.52).setOrigin(0.5, 0.5);
+    this.coinText = this.add.text(184, 0, '0', TYPOGRAPHY.STYLES.HUD_VALUE).setOrigin(0, 0.5);
+
+    // Score Readout
+    this.scoreText = this.add.text(230, 0, 'SCORE: 0', TYPOGRAPHY.STYLES.HUD_BADGE_TEXT).setOrigin(0, 0.5);
+
+    // Divider
+    this.badgeDivider = this.add.text(326, 0, '|', {
+      fontFamily: "'Outfit', sans-serif",
+      fontSize: '12px',
+      color: '#8a5229'
+    }).setOrigin(0.5, 0.5);
+
+    // Restoration & Mechanism Progress
+    this.restorationText = this.add.text(338, 0, '✦ RESTORATION: 0/1', TYPOGRAPHY.STYLES.HUD_BADGE_TEXT).setOrigin(0, 0.5);
+
+    this.resourceContainer.add([
+      this.modakIcon, this.modakText,
+      this.stoneIcon, this.stoneText,
+      this.lotusIcon, this.lotusText,
+      this.coinIcon, this.coinText,
+      this.scoreText, this.badgeDivider, this.restorationText
+    ]);
+
+    // 5. Sacred Temple Health / Lives Display (Right: x = 1190, y = 57)
     this.createHealthHUD();
   }
 
   /**
    * Health / Lives Display with 3 sacred ruby/gold heart icons
+   * Aligned directly below the restart button for clean visual balance.
    */
   createHealthHUD() {
-    TextureGenerator.createHeartTextures(this);
-
-    this.healthContainer = this.add.container(485, 72);
+    this.healthContainer = this.add.container(1190, 57);
     this.healthBg = this.add.graphics();
-    this.healthBg.fillStyle(0x221107, 0.88);
-    this.healthBg.lineStyle(1.5, 0x8a5229, 0.9);
-    this.healthBg.fillRoundedRect(-68, -15, 136, 30, 8);
-    this.healthBg.strokeRoundedRect(-68, -15, 136, 30, 8);
+    this.healthBg.fillStyle(0x221107, 0.92);
+    this.healthBg.lineStyle(1.5, 0x8a5229, 0.95);
+    this.healthBg.fillRoundedRect(-68, -13, 136, 26, 8);
+    this.healthBg.strokeRoundedRect(-68, -13, 136, 26, 8);
 
     // Subtle inner gold bevel
     this.healthBg.lineStyle(1, 0xd4a373, 0.3);
-    this.healthBg.strokeRoundedRect(-66, -13, 132, 26, 6);
+    this.healthBg.strokeRoundedRect(-66, -11, 132, 22, 6);
 
-    this.healthLabel = this.add.text(-56, 0, "LIVES", {
-      fontFamily: "'Outfit', 'Cinzel', sans-serif",
-      fontSize: '11px',
-      fontStyle: 'bold',
-      color: '#ffd280'
-    }).setOrigin(0, 0.5);
+    this.healthLabel = this.add.text(-56, 0, "LIVES", TYPOGRAPHY.STYLES.HUD_LABEL).setOrigin(0, 0.5);
 
     this.heartSprites = [];
     this.maxLives = 3;
@@ -186,7 +196,7 @@ export class UIScene extends Phaser.Scene {
     const spacing = 24;
     for (let i = 0; i < this.maxLives; i++) {
       const heart = this.add.image(startX + (i * spacing), 0, 'heart_full');
-      heart.setScale(0.85);
+      heart.setScale(0.8);
       this.heartSprites.push(heart);
     }
 
@@ -224,26 +234,30 @@ export class UIScene extends Phaser.Scene {
   /** Redraws objective badge background based on text width */
   redrawObjectiveBadge() {
     if (!this.objectiveBg || !this.objectiveText) return;
-    const width = Math.max(380, this.objectiveText.width + 36);
+    const width = Math.max(360, this.objectiveText.width + 36);
     const half = width / 2;
     this.objectiveBg.clear();
-    this.objectiveBg.fillStyle(0x221107, 0.8);
-    this.objectiveBg.lineStyle(1.5, 0x8a5229, 0.85);
-    this.objectiveBg.fillRoundedRect(-half, -14, width, 28, 7);
-    this.objectiveBg.strokeRoundedRect(-half, -14, width, 28, 7);
+    this.objectiveBg.fillStyle(0x221107, 0.85);
+    this.objectiveBg.lineStyle(1.5, 0x8a5229, 0.88);
+    this.objectiveBg.fillRoundedRect(-half, -13, width, 26, 7);
+    this.objectiveBg.strokeRoundedRect(-half, -13, width, 26, 7);
   }
 
-  /** Updates the single centralized current-level resource readout. */
+  /** Updates current-level resource badges with clean numbers. */
   updateResources(resources) {
-    if (!this.resourceText) return;
-    const restoration = `Restoration: ${resources.restorationProgress || 0}/${resources.totalRestorations || 1}`;
-    const mechanisms = (resources.totalMechanisms > 0)
-      ? `   •   Mechanisms: ${resources.mechanismsActivated || 0}/${resources.totalMechanisms}`
-      : '';
-    this.resourceText.setText(
-      `Modaks: ${resources.modaks}   •   Sacred Stones: ${resources.sacredStones}   •   Lotus: ${resources.lotuses}\n` +
-      `Coins: ${resources.templeCoins}   •   Scriptures: ${resources.scriptures}   •   Score: ${resources.score}   |   ${restoration}${mechanisms}`
-    );
+    if (this.modakText) this.modakText.setText(`${resources.modaks || 0}`);
+    if (this.stoneText) this.stoneText.setText(`${resources.sacredStones || 0}`);
+    if (this.lotusText) this.lotusText.setText(`${resources.lotuses || 0}`);
+    if (this.coinText) this.coinText.setText(`${resources.templeCoins || 0}`);
+    if (this.scoreText) this.scoreText.setText(`SCORE: ${resources.score || 0}`);
+
+    if (this.restorationText) {
+      const rest = `✦ RESTORATION: ${resources.restorationProgress || 0}/${resources.totalRestorations || 1}`;
+      const mech = (resources.totalMechanisms > 0)
+        ? `   •   MECHANISMS: ${resources.mechanismsActivated || 0}/${resources.totalMechanisms}`
+        : '';
+      this.restorationText.setText(`${rest}${mech}`);
+    }
   }
 
   /** Dynamically updates current level progression objective reminder */
@@ -253,9 +267,9 @@ export class UIScene extends Phaser.Scene {
     this.redrawObjectiveBadge();
     this.tweens.add({
       targets: this.objectiveContainer,
-      scaleX: 1.05,
-      scaleY: 1.05,
-      duration: 160,
+      scaleX: 1.04,
+      scaleY: 1.04,
+      duration: 150,
       yoyo: true,
       ease: 'Sine.easeInOut'
     });
@@ -305,24 +319,10 @@ export class UIScene extends Phaser.Scene {
     card.fillRect(316, 200, 4, 20);
 
     // Victory Title
-    this.victoryTitle = this.add.text(0, -165, "LEVEL 1 COMPLETE", {
-      fontFamily: "'Cinzel', Georgia, serif",
-      fontSize: '26px',
-      fontStyle: 'bold',
-      color: '#ffd066',
-      stroke: '#140802',
-      strokeThickness: 4,
-      letterSpacing: 1.5
-    }).setOrigin(0.5, 0.5);
+    this.victoryTitle = this.add.text(0, -165, "LEVEL 1 COMPLETE", TYPOGRAPHY.STYLES.CARD_TITLE).setOrigin(0.5, 0.5);
 
     // Subtitle
-    this.victorySubtitle = this.add.text(0, -130, "THE TEMPLE AWAKENS", {
-      fontFamily: "'Cinzel', Georgia, serif",
-      fontSize: '13.5px',
-      fontStyle: 'bold',
-      color: '#ffb347',
-      letterSpacing: 2
-    }).setOrigin(0.5, 0.5);
+    this.victorySubtitle = this.add.text(0, -130, "THE TEMPLE AWAKENS", TYPOGRAPHY.STYLES.CARD_SUBTITLE).setOrigin(0.5, 0.5);
 
     // Lotus Motif separator
     const separator = this.add.text(0, -104, "✤  ॐ  ✤", {
@@ -332,34 +332,16 @@ export class UIScene extends Phaser.Scene {
     }).setOrigin(0.5, 0.5);
 
     // Descriptive lore text
-    this.victoryDesc = this.add.text(0, -52, "The sacred flame burns once again.\nThe ancient entrance pillar stands restored with divine light,\nand the temple awakens from its long slumber.", {
-      fontFamily: "'Cinzel', Georgia, serif",
-      fontSize: '13px',
-      color: '#f5deb3',
-      align: 'center',
-      lineSpacing: 6
-    }).setOrigin(0.5, 0.5);
+    this.victoryDesc = this.add.text(0, -52, "The sacred flame burns once again.\nThe ancient entrance pillar stands restored with divine light,\nand the temple awakens from its long slumber.", TYPOGRAPHY.STYLES.CARD_LORE).setOrigin(0.5, 0.5);
 
-    this.victorySummary = this.add.text(0, 24, '', {
-      fontFamily: "'Outfit', 'Cinzel', -apple-system, sans-serif",
-      fontSize: '13px',
-      fontStyle: '600',
-      color: '#ffe099',
-      align: 'center',
-      lineSpacing: 6
-    }).setOrigin(0.5, 0.5);
+    this.victorySummary = this.add.text(0, 24, '', TYPOGRAPHY.STYLES.CARD_SUMMARY).setOrigin(0.5, 0.5);
 
-    // --- BUTTON 1: Action Button (ENTER FALLEN COURTYARD / INNER HALLS COMING SOON) ---
+    // --- BUTTON 1: Action Button (ENTER FALLEN COURTYARD / ENTER INNER HALLS) ---
     this.actionBtn = this.add.container(-130, 150);
     this.actionBtnBg = this.add.graphics();
     this.drawCardButton(this.actionBtnBg, 0x944a14, 0xffbb33);
 
-    this.actionBtnText = this.add.text(0, 0, "ENTER FALLEN COURTYARD", {
-      fontFamily: "'Cinzel', 'Outfit', sans-serif",
-      fontSize: '11.5px',
-      fontStyle: 'bold',
-      color: '#ffffff'
-    }).setOrigin(0.5, 0.5);
+    this.actionBtnText = this.add.text(0, 0, "ENTER FALLEN COURTYARD", TYPOGRAPHY.STYLES.CARD_BUTTON).setOrigin(0.5, 0.5);
 
     this.actionBtn.add([this.actionBtnBg, this.actionBtnText]);
     this.actionBtn.setSize(240, 40);
@@ -401,9 +383,7 @@ export class UIScene extends Phaser.Scene {
     this.drawCardButton(this.restartBtnBg, 0x4a2410, 0xd48833);
 
     const restartBtnText = this.add.text(0, 0, "RESTART LEVEL (Press R)", {
-      fontFamily: "'Cinzel', 'Outfit', sans-serif",
-      fontSize: '11.5px',
-      fontStyle: 'bold',
+      ...TYPOGRAPHY.STYLES.CARD_BUTTON,
       color: '#ffdcb3'
     }).setOrigin(0.5, 0.5);
 
@@ -431,25 +411,17 @@ export class UIScene extends Phaser.Scene {
   }
 
   /**
-   * Action notification banner floating just beneath the top HUD
+   * Action notification banner floating just beneath the top HUD at y = 106
    */
   createFeedbackBanner() {
-    this.bannerContainer = this.add.container(640, 132);
+    this.bannerContainer = this.add.container(640, 106);
     this.bannerContainer.setDepth(200);
     this.bannerContainer.setVisible(false);
     this.bannerContainer.setAlpha(0);
-    this.bannerContainer.setScale(0.85);
+    this.bannerContainer.setScale(0.88);
 
     this.bannerBg = this.add.graphics();
-    this.bannerText = this.add.text(0, 0, '', {
-      fontFamily: "'Cinzel', Georgia, serif",
-      fontSize: '14px',
-      fontStyle: 'bold',
-      color: '#ffd066',
-      stroke: '#140802',
-      strokeThickness: 3,
-      align: 'center'
-    }).setOrigin(0.5, 0.5);
+    this.bannerText = this.add.text(0, 0, '', TYPOGRAPHY.STYLES.NOTIFICATION_BANNER).setOrigin(0.5, 0.5);
 
     this.bannerContainer.add([this.bannerBg, this.bannerText]);
     this.bannerTimer = null;
@@ -469,24 +441,24 @@ export class UIScene extends Phaser.Scene {
     // Format with sacred temple motif
     this.bannerText.setText(`✨  ${text.toUpperCase()}  ✨`);
 
-    const paddingX = 40;
-    const bannerWidth = Math.max(280, this.bannerText.width + paddingX);
+    const paddingX = 36;
+    const bannerWidth = Math.max(260, this.bannerText.width + paddingX);
     const halfWidth = bannerWidth / 2;
 
     this.bannerBg.clear();
     // Drop shadow
     this.bannerBg.fillStyle(0x000000, 0.5);
-    this.bannerBg.fillRoundedRect(-halfWidth - 2, -18 + 2, bannerWidth + 4, 36, 10);
+    this.bannerBg.fillRoundedRect(-halfWidth - 2, -16 + 2, bannerWidth + 4, 32, 8);
 
     // Deep terracotta/wood card
     this.bannerBg.fillStyle(0x2a140a, 0.95);
     this.bannerBg.lineStyle(2, 0xffbb33, 0.9);
-    this.bannerBg.fillRoundedRect(-halfWidth, -18, bannerWidth, 36, 8);
-    this.bannerBg.strokeRoundedRect(-halfWidth, -18, bannerWidth, 36, 8);
+    this.bannerBg.fillRoundedRect(-halfWidth, -16, bannerWidth, 32, 8);
+    this.bannerBg.strokeRoundedRect(-halfWidth, -16, bannerWidth, 32, 8);
 
     // Inner gold rim
     this.bannerBg.lineStyle(1, 0x804d1a, 0.6);
-    this.bannerBg.strokeRoundedRect(-halfWidth + 3, -15, bannerWidth - 6, 30, 6);
+    this.bannerBg.strokeRoundedRect(-halfWidth + 3, -13, bannerWidth - 6, 26, 6);
 
     // Cancel existing animations
     if (this.bannerTween) this.bannerTween.stop();
@@ -494,23 +466,23 @@ export class UIScene extends Phaser.Scene {
 
     this.bannerContainer.setVisible(true);
     this.bannerContainer.setAlpha(0);
-    this.bannerContainer.setScale(0.85);
+    this.bannerContainer.setScale(0.88);
 
     // Entrance tween
     this.bannerTween = this.tweens.add({
       targets: this.bannerContainer,
       alpha: 1,
       scale: 1,
-      duration: 220,
+      duration: 200,
       ease: 'Back.easeOut',
       onComplete: () => {
-        // Hold for 2.8s then fade out
-        this.bannerTimer = this.time.delayedCall(2800, () => {
+        // Hold for 2.6s then fade out
+        this.bannerTimer = this.time.delayedCall(2600, () => {
           this.bannerTween = this.tweens.add({
             targets: this.bannerContainer,
             alpha: 0,
             scale: 0.92,
-            duration: 350,
+            duration: 300,
             ease: 'Sine.easeIn',
             onComplete: () => {
               this.bannerContainer.setVisible(false);
@@ -631,25 +603,11 @@ export class UIScene extends Phaser.Scene {
     card.fillRect(262, 176, 18, 4);
     card.fillRect(276, 162, 4, 18);
 
-    // Game Over Title
-    this.gameOverTitle = this.add.text(0, -125, "GAME OVER", {
-      fontFamily: "'Cinzel', Georgia, serif",
-      fontSize: '28px',
-      fontStyle: 'bold',
-      color: '#ff6b52',
-      stroke: '#140802',
-      strokeThickness: 4,
-      letterSpacing: 2
-    }).setOrigin(0.5, 0.5);
+    // Game Over Title: Consistent wording
+    this.gameOverTitle = this.add.text(0, -125, "GANESHA HAS FALLEN", TYPOGRAPHY.STYLES.GAME_OVER_TITLE).setOrigin(0.5, 0.5);
 
-    // Subtitle / Lore
-    this.gameOverSubtitle = this.add.text(0, -88, "The temple’s journey must begin again.", {
-      fontFamily: "'Cinzel', Georgia, serif",
-      fontSize: '14px',
-      fontStyle: 'bold',
-      color: '#d48866',
-      letterSpacing: 1
-    }).setOrigin(0.5, 0.5);
+    // Subtitle / Consistent Lore wording
+    this.gameOverSubtitle = this.add.text(0, -88, "The temple awaits your return.", TYPOGRAPHY.STYLES.GAME_OVER_SUBTITLE).setOrigin(0.5, 0.5);
 
     // Separator
     const separator = this.add.text(0, -62, "✤   ॐ   ✤", {
@@ -659,12 +617,7 @@ export class UIScene extends Phaser.Scene {
     }).setOrigin(0.5, 0.5);
 
     // Depleted Lives Readout
-    this.gameOverLivesText = this.add.text(0, -26, "Lives Lost: 3 / 3", {
-      fontFamily: "'Outfit', 'Cinzel', -apple-system, sans-serif",
-      fontSize: '14px',
-      fontStyle: '600',
-      color: '#ff8a7a'
-    }).setOrigin(0.5, 0.5);
+    this.gameOverLivesText = this.add.text(0, -26, "All 3 sacred lives have been exhausted.", TYPOGRAPHY.STYLES.GAME_OVER_INFO).setOrigin(0.5, 0.5);
 
     // 3 Empty Hearts visual readout on card
     this.gameOverHearts = [];
@@ -677,9 +630,7 @@ export class UIScene extends Phaser.Scene {
 
     // Instruction Text
     this.gameOverInstruction = this.add.text(0, 48, "Press [R] to try again", {
-      fontFamily: "'Outfit', 'Cinzel', -apple-system, sans-serif",
-      fontSize: '12.5px',
-      fontStyle: '600',
+      ...TYPOGRAPHY.STYLES.HUD_BADGE_TEXT,
       color: '#d4b094'
     }).setOrigin(0.5, 0.5);
 
@@ -688,12 +639,7 @@ export class UIScene extends Phaser.Scene {
     this.gameOverRestartBtnBg = this.add.graphics();
     this.drawGameOverButton(this.gameOverRestartBtnBg, 0x6b2416, 0xff5a36);
 
-    const restartBtnText = this.add.text(0, 0, "RESTART LEVEL (Press R)", {
-      fontFamily: "'Cinzel', 'Outfit', sans-serif",
-      fontSize: '12px',
-      fontStyle: 'bold',
-      color: '#ffffff'
-    }).setOrigin(0.5, 0.5);
+    const restartBtnText = this.add.text(0, 0, "RESTART LEVEL (Press R)", TYPOGRAPHY.STYLES.CARD_BUTTON).setOrigin(0.5, 0.5);
 
     this.gameOverRestartBtn.add([this.gameOverRestartBtnBg, restartBtnText]);
     this.gameOverRestartBtn.setSize(240, 42);

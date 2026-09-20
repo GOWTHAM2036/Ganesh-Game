@@ -12,7 +12,7 @@ export class BootScene extends Phaser.Scene {
   }
 
   create() {
-    // Generate procedural placeholder textures
+    // Generate procedural temple textures
     TextureGenerator.generateAll(this);
 
     // Transition immediately to GameScene

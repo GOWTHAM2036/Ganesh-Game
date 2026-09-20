@@ -3,7 +3,7 @@ import { GAME_CONFIG } from '../config.js';
 import { SoundFX } from '../utils/SoundFX.js';
 
 /**
- * Player Entity (Lord Ganesha Prototype)
+ * Player Entity (Lord Ganesha)
  * Handles physics, movement, jumping, collision responses,
  * and extensible hooks for divine trunk mechanics and sacred item interactions.
  */
@@ -16,12 +16,14 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   constructor(scene, x, y) {
     super(scene, x, y, 'player');
 
-    // Add to scene display and physics system
     scene.add.existing(this);
     scene.physics.add.existing(this);
 
     Player.instanceCount = (Player.instanceCount || 0) + 1;
     console.log('[PLAYER] instance created:', Player.instanceCount);
+
+    // Ensure player is rendered in front of background decorations and platforms
+    this.setDepth(10);
 
     // Physics body configuration
     this.setCollideWorldBounds(false); // Can fall off bottom pits into mist
@@ -47,7 +49,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.wasOnGround = true;
 
     // Contact grounding shadow beneath player
-    this.groundShadow = scene.add.ellipse(x, y + 27, 24, 7, 0x0a0510, 0.45).setDepth(this.depth - 1);
+    this.groundShadow = scene.add.ellipse(x, y + 27, 24, 7, 0x0a0510, 0.45).setDepth(9);
 
     // Extensible divine stat; all collectible inventory lives in GameState.
     this.trunkEnergy = 100;

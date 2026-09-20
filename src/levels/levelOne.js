@@ -14,7 +14,7 @@ export const LEVEL_ONE = {
   hazards: { fallBoundary: 820 },
   platforms: {
     ground: [
-      [0, 560, 580],      // Section 1: Sacred Threshold Terrace
+      [0, 600, 580],      // Section 1: Sacred Threshold Terrace (wide & welcoming)
       [1020, 1540, 580],  // Section 2: Broken Entrance Terrace & Torana Gate
       [2060, 2600, 440]   // Section 3: Sacred Sanctum Altar Terrace
     ],
@@ -68,6 +68,15 @@ export const LEVEL_ONE = {
       requiredResource: "sacredStones",
       requiredAmount: 3
     }
+  ],
+  decorations: [
+    { x: 80, y: 580, texture: 'pillar', originX: 0.5, originY: 1 },
+    { x: 380, y: 580, texture: 'broken_statue', originX: 0.5, originY: 1 },
+    { x: 540, y: 580, texture: 'fallen_column', originX: 0.5, originY: 1 },
+    { x: 1040, y: 580, texture: 'ruin_banyan', originX: 0.5, originY: 1 },
+    { x: 1460, y: 580, texture: 'broken_statue', originX: 0.5, originY: 1 },
+    { x: 2100, y: 440, texture: 'pillar', originX: 0.5, originY: 1 },
+    { x: 2540, y: 440, texture: 'pillar', originX: 0.5, originY: 1 }
   ],
   goal: { x: 2320, y: 360 }
 };

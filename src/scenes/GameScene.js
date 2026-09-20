@@ -19,7 +19,7 @@ import { TextureGenerator } from '../utils/TextureGenerator.js';
 
 /**
  * GameScene
- * Main gameplay scene for Ganesha's Broken Temple prototype.
+ * Main gameplay scene for Ganesha's Broken Temple.
  * Handles level construction, parallax background rendering,
  * physics collisions, camera tracking, and player life cycle.
  */
@@ -488,11 +488,12 @@ export class GameScene extends Phaser.Scene {
       });
     }
 
-    // Atmospheric environmental decorations
+    // Atmospheric environmental decorations (depth -5 ensures they sit behind player and gameplay)
     if (Array.isArray(this.level.decorations)) {
       this.level.decorations.forEach(d => {
         const img = this.add.image(d.x, d.y, d.texture)
-          .setOrigin(d.originX ?? 0.5, d.originY ?? 1);
+          .setOrigin(d.originX ?? 0.5, d.originY ?? 1)
+          .setDepth(d.depth ?? -5);
         if (d.tint) img.setTint(d.tint);
         if (d.scale) img.setScale(d.scale);
       });
@@ -585,7 +586,7 @@ export class GameScene extends Phaser.Scene {
    * Main game loop update
    */
   update(time, delta) {
-    if (this.player && !this.gameState.levelCompleted) {
+    if (this.player && !this.gameState.levelCompleted && !this.gameState.isGameOver && !this.isHandlingDeath) {
       this.player.update(this.cursors, this.keys, time, delta);
     }
     if (this.interactionManager) {
@@ -658,7 +659,7 @@ export class GameScene extends Phaser.Scene {
     if (remainingLives > 0) {
       // Brief feedback banner
       if (uiScene?.showFeedback) {
-        const lifeStr = remainingLives === 1 ? '1 life remaining' : `${remainingLives} lives remaining`;
+        const lifeStr = remainingLives === 1 ? 'One life remaining' : `${remainingLives} lives remaining`;
         uiScene.showFeedback(`Ganesha has fallen — ${lifeStr}`);
       }
 
@@ -671,7 +672,10 @@ export class GameScene extends Phaser.Scene {
         }
       });
     } else {
-      // All 3 lives exhausted -> Show Game Over overlay
+      // All 3 lives exhausted -> Halt player and show Game Over overlay
+      if (this.player) {
+        this.player.setVelocity(0, 0);
+      }
       this.cameras.main.fade(350, 12, 6, 3, false);
       this.time.delayedCall(350, () => {
         this.showGameOver();
