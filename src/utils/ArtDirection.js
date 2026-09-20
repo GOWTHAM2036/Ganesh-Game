@@ -1962,4 +1962,363 @@ export class ArtDirection {
     // Moss on rubble
     this.drawMossCluster(ctx, 8, 6, 14, 4);
   }
+
+  /**
+   * Subterranean Ashlar Foundation Stone Texture (128x128 seamless tileable)
+   */
+  static drawFoundationStone(ctx, w = 128, h = 128, options = {}) {
+    const baseCol = options.stoneBase || TEMPLE_PALETTE.sandstoneShadow;
+    const shadowCol = options.stoneShadow || '#22140a';
+    const highCol = options.stoneHighlight || '#5c3922';
+
+    // Base background
+    ctx.fillStyle = shadowCol;
+    ctx.fillRect(0, 0, w, h);
+
+    const rowH = 32;
+    const rowCount = Math.floor(h / rowH);
+
+    // Staggered courses of heavy ashlar masonry
+    for (let r = 0; r < rowCount; r++) {
+      const ry = r * rowH;
+      // Stagger pattern
+      const offsets = [
+        [0, 52, 128],
+        [0, 36, 92, 128],
+        [0, 68, 128],
+        [0, 44, 84, 128]
+      ][r % 4];
+
+      for (let b = 0; b < offsets.length - 1; b++) {
+        const bx = offsets[b];
+        const bw = offsets[b + 1] - bx;
+
+        // Beveled ashlar block
+        this.drawBeveledStone(ctx, bx + 1, ry + 1, bw - 2, rowH - 2, baseCol, highCol, shadowCol, 1.5);
+
+        // Weathered fissures and texture
+        ctx.fillStyle = highCol;
+        ctx.fillRect(bx + 4, ry + 4, bw - 8, 1);
+
+        if ((b + r) % 2 === 0) {
+          this.drawCrack(ctx, bx + Math.floor(bw * 0.4), ry + 6, 14, 0.35, shadowCol);
+        }
+      }
+
+      // Horizontal mortar line
+      ctx.fillStyle = shadowCol;
+      ctx.fillRect(0, ry + rowH - 1, w, 1);
+    }
+  }
+
+  /**
+   * Temple Terrace Carved Adhishthana Plinth (128x48)
+   */
+  static drawFoundationAdhishthana(ctx, w = 128, h = 48, options = {}) {
+    const baseCol = options.stoneBase || TEMPLE_PALETTE.sandstoneMid;
+    const highCol = options.stoneHighlight || TEMPLE_PALETTE.sandstoneSunlit;
+    const shadowCol = options.stoneShadow || TEMPLE_PALETTE.sandstoneShadow;
+
+    // Top Torus Band (Kumuda moulding, y: 0 to 14)
+    this.drawBeveledStone(ctx, 0, 0, w, 14, baseCol, highCol, shadowCol, 2);
+    ctx.fillStyle = highCol;
+    ctx.fillRect(0, 2, w, 2);
+
+    // Middle Carved Lotus Frieze (Padma moulding, y: 14 to 32)
+    ctx.fillStyle = shadowCol;
+    ctx.fillRect(0, 14, w, 18);
+    for (let x = 0; x < w; x += 16) {
+      // Inverted carved lotus petal
+      ctx.fillStyle = baseCol;
+      ctx.beginPath();
+      ctx.moveTo(x + 2, 14);
+      ctx.quadraticCurveTo(x + 8, 30, x + 14, 14);
+      ctx.closePath();
+      ctx.fill();
+
+      // Petal highlight rim
+      ctx.strokeStyle = highCol;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(x + 3, 15);
+      ctx.quadraticCurveTo(x + 8, 28, x + 13, 15);
+      ctx.stroke();
+    }
+
+    // Bottom Base Slab (Upana moulding, y: 32 to 48)
+    this.drawBeveledStone(ctx, 0, 32, w, 16, TEMPLE_PALETTE.sandstoneBase, baseCol, shadowCol, 2);
+  }
+
+  /**
+   * Deep Foundation Pillar for Chasms (80x280)
+   */
+  static drawChasmFoundationPillar(ctx, w = 80, h = 280, options = {}) {
+    const baseCol = options.stoneBase || TEMPLE_PALETTE.sandstoneBase;
+    const highCol = options.stoneHighlight || TEMPLE_PALETTE.sandstoneHighlight;
+    const shadowCol = options.stoneShadow || '#1b0f08';
+
+    // 1. Bracket Capital at top (y: 0 to 28)
+    this.drawBeveledStone(ctx, 4, 0, 72, 28, baseCol, highCol, shadowCol, 2);
+    // Bracket carvings
+    ctx.fillStyle = highCol;
+    ctx.fillRect(8, 4, 64, 2);
+
+    // 2. Pillar Shaft (y: 28 to 220, width 48, centered at x = 40)
+    const shaftX = 16;
+    const shaftW = 48;
+    this.drawBeveledStone(ctx, shaftX, 28, shaftW, 192, baseCol, highCol, shadowCol, 2);
+
+    // Fluted grooves
+    for (let fx = shaftX + 8; fx <= shaftX + shaftW - 8; fx += 10) {
+      ctx.fillStyle = shadowCol;
+      ctx.fillRect(fx - 1, 32, 2, 184);
+      ctx.fillStyle = highCol;
+      ctx.fillRect(fx + 1, 32, 1, 184);
+    }
+
+    // 3. Descending depth darkness gradient (fading into the gorge)
+    const depthGrad = ctx.createLinearGradient(0, 100, 0, h);
+    depthGrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
+    depthGrad.addColorStop(0.65, 'rgba(20, 10, 5, 0.6)');
+    depthGrad.addColorStop(1, 'rgba(10, 4, 2, 0.95)');
+    ctx.fillStyle = depthGrad;
+    ctx.fillRect(0, 100, w, h - 100);
+
+    // 4. Heavy Base Plinth (y: 220 to 280)
+    this.drawBeveledStone(ctx, 8, 220, 64, 28, shadowCol, baseCol, '#0a0402', 2);
+    this.drawBeveledStone(ctx, 2, 248, 76, 32, shadowCol, baseCol, '#060201', 2);
+
+    // Moss on lower portion
+    this.drawMossCluster(ctx, 12, 180, 24, 6);
+  }
+
+  /**
+   * Ethereal Chasm Mist Texture (640x120)
+   */
+  static drawChasmMist(ctx, w = 640, h = 120) {
+    // Vertical atmospheric haze gradient
+    const grad = ctx.createLinearGradient(0, 0, 0, h);
+    grad.addColorStop(0, 'rgba(12, 6, 20, 0)');
+    grad.addColorStop(0.3, 'rgba(48, 20, 56, 0.42)');
+    grad.addColorStop(0.65, 'rgba(160, 80, 24, 0.28)');
+    grad.addColorStop(1, 'rgba(14, 5, 22, 0.7)');
+
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+
+    // Soft drifting cloud wisps
+    ctx.fillStyle = 'rgba(220, 140, 50, 0.12)';
+    for (let i = 0; i < 6; i++) {
+      const cx = (i * 110) + 40;
+      ctx.beginPath();
+      ctx.ellipse(cx, 55, 70, 18, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  /**
+   * Sacred Mandapa Entrance Portal for Level 1 Start (140x360)
+   * Perfectly frames the left edge of the level (x: 0 to 140)
+   */
+  static drawEntranceMandapaPortal(ctx, w = 140, h = 360) {
+    const baseCol = TEMPLE_PALETTE.sandstoneBase;
+    const highCol = TEMPLE_PALETTE.sandstoneHighlight;
+    const shadowCol = TEMPLE_PALETTE.sandstoneShadow;
+    const sunlitCol = TEMPLE_PALETTE.sandstoneSunlit;
+
+    // 1. Solid Left Boundary Wall & Pier (x: 0 to 38, y: 55 to 360)
+    this.drawFoundationStone(ctx, 38, 360, {
+      stoneBase: shadowCol,
+      stoneShadow: '#1a0d06',
+      stoneHighlight: baseCol
+    });
+
+    // Outer wall cap
+    this.drawBeveledStone(ctx, 0, 55, 42, 16, baseCol, highCol, shadowCol, 2);
+
+    // 2. Ceremonial Entrance Stambha / Pillar (x: 36 to 96, y: 60 to 360)
+    this.drawCarvedPillar(ctx, 38, 60, 58, 300, {
+      stoneBase: baseCol,
+      stoneHighlight: highCol,
+      stoneShadow: shadowCol
+    });
+
+    // 3. Overhead Torana Arch Lintel (x: 0 to 140, y: 0 to 65)
+    this.drawBeveledStone(ctx, 0, 18, 140, 26, baseCol, sunlitCol, shadowCol, 2.5);
+    this.drawBeveledStone(ctx, 10, 44, 126, 16, shadowCol, baseCol, '#150a04', 2);
+
+    // Lotus frieze on lintel face
+    ctx.fillStyle = sunlitCol;
+    for (let x = 16; x <= 124; x += 14) {
+      ctx.beginPath();
+      ctx.arc(x + 5, 31, 3.5, 0, Math.PI);
+      ctx.fill();
+    }
+
+    // Auspicious Golden Kalasha Finial atop portal
+    ctx.fillStyle = TEMPLE_PALETTE.goldBright;
+    ctx.beginPath();
+    ctx.arc(68, 10, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(68, 0);
+    ctx.lineTo(65, 5);
+    ctx.lineTo(71, 5);
+    ctx.closePath();
+    ctx.fill();
+
+    // Sacred Marigold Garland festooned across lintel
+    this.drawMarigoldGarland(ctx, 8, 48, 134, 48, 14, 11);
+
+    // Hanging brass bell at entrance
+    this.drawAncientBell(ctx, 24, 34, false);
+    // Shift bell to hook at x = 98, y = 72
+    ctx.save();
+    ctx.translate(98, 72);
+    // Draw hanging chain
+    ctx.strokeStyle = TEMPLE_PALETTE.bronzeHighlight;
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.moveTo(12, -12);
+    ctx.lineTo(12, 0);
+    ctx.stroke();
+    this.drawAncientBell(ctx, 24, 34, false);
+    ctx.restore();
+
+    // Sacred Wall Niche on left pier holding lit diya
+    ctx.fillStyle = '#150a04';
+    ctx.beginPath();
+    ctx.arc(19, 195, 12, Math.PI, 0);
+    ctx.rect(7, 195, 24, 30);
+    ctx.fill();
+    this.drawDiyaLamp(ctx, 9, 206, 20, 18, true);
+  }
+
+  /**
+   * Monumental Sanctum Garbhagriha Back Wall & Vimana Facade (140x380)
+   * Firmly and beautifully grounds the right boundary of Level 1 (x: 2460 to 2600)
+   */
+  static drawSanctumBackWall(ctx, w = 140, h = 380) {
+    const baseCol = TEMPLE_PALETTE.sandstoneBase;
+    const highCol = TEMPLE_PALETTE.sandstoneHighlight;
+    const shadowCol = TEMPLE_PALETTE.sandstoneShadow;
+    const sunlitCol = TEMPLE_PALETTE.sandstoneSunlit;
+
+    // 1. Full solid sanctuary masonry
+    ctx.fillStyle = shadowCol;
+    ctx.fillRect(0, 0, w, h);
+
+    // Ashlar stone courses
+    const rowH = 28;
+    for (let y = 0; y < h; y += rowH) {
+      this.drawBeveledStone(ctx, 0, y, w, rowH - 2, shadowCol, baseCol, '#180d06', 1.5);
+    }
+
+    // 2. Stepped Vimana Roofline (top right ascending tiers)
+    for (let t = 0; t < 5; t++) {
+      const ty = t * 24;
+      const tx = t * 14;
+      this.drawBeveledStone(ctx, tx, ty, w - tx, 20, baseCol, sunlitCol, shadowCol, 2);
+    }
+
+    // 3. Inner Carved Framing Pilaster (x: 0 to 44, y: 80 to 380)
+    this.drawCarvedPillar(ctx, 2, 80, 44, 300, {
+      stoneBase: baseCol,
+      stoneHighlight: highCol,
+      stoneShadow: shadowCol
+    });
+
+    // 4. Sacred Sanctum Wall Niche (x: 52 to 118, y: 140 to 250)
+    ctx.fillStyle = '#140804';
+    ctx.beginPath();
+    ctx.arc(85, 155, 28, Math.PI, 0);
+    ctx.rect(57, 155, 56, 95);
+    ctx.fill();
+
+    // Niche border moulding
+    ctx.strokeStyle = TEMPLE_PALETTE.goldBase;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(85, 155, 28, Math.PI, 0);
+    ctx.rect(57, 155, 56, 95);
+    ctx.stroke();
+
+    // Radiant inner golden aura
+    const halo = ctx.createRadialGradient(85, 185, 4, 85, 185, 36);
+    halo.addColorStop(0, 'rgba(255, 215, 0, 0.7)');
+    halo.addColorStop(0.5, 'rgba(230, 120, 20, 0.35)');
+    halo.addColorStop(1, 'rgba(20, 8, 4, 0)');
+    ctx.fillStyle = halo;
+    ctx.beginPath();
+    ctx.arc(85, 185, 36, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Sacred Lotus Floral Medallion inside niche
+    this.drawLotus(ctx, 32);
+    ctx.save();
+    ctx.translate(69, 169);
+    this.drawLotus(ctx, 32);
+    ctx.restore();
+
+    // Wall torch sconce below niche
+    this.drawTorchSconce(ctx, 28, 54);
+    ctx.save();
+    ctx.translate(71, 252);
+    this.drawTorchSconce(ctx, 28, 54);
+    ctx.restore();
+
+    // Kalasha finial on vimana parapet
+    ctx.fillStyle = TEMPLE_PALETTE.goldBright;
+    ctx.beginPath();
+    ctx.arc(115, 8, 5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  /**
+   * Distant Temple Gopuram Silhouettes for Horizon Skyline (1280x220)
+   */
+  static drawDistantTempleSilhouettes(ctx, w = 1280, h = 220) {
+    const silCol = 'rgba(28, 14, 38, 0.78)';
+    const rimCol = 'rgba(215, 140, 75, 0.4)';
+
+    ctx.clearRect(0, 0, w, h);
+
+    // Towers across the horizon
+    const towers = [
+      { x: 120, w: 90, h: 180, tiers: 5 },
+      { x: 380, w: 75, h: 140, tiers: 4 },
+      { x: 650, w: 110, h: 210, tiers: 6 },
+      { x: 920, w: 80, h: 160, tiers: 4 },
+      { x: 1160, w: 95, h: 190, tiers: 5 }
+    ];
+
+    towers.forEach(t => {
+      const baseY = h;
+      for (let tr = 0; tr < t.tiers; tr++) {
+        const tierW = t.w - (tr * (t.w / (t.tiers + 1)));
+        const tierH = t.h / t.tiers;
+        const ty = baseY - ((tr + 1) * tierH);
+
+        ctx.fillStyle = silCol;
+        ctx.fillRect(t.x - tierW / 2, ty, tierW, tierH);
+
+        // Soft moonlit rim highlight on top edges
+        ctx.fillStyle = rimCol;
+        ctx.fillRect(t.x - tierW / 2, ty, tierW, 1.5);
+
+        // Chaitya cutout silhouettes
+        ctx.fillStyle = 'rgba(12, 6, 18, 0.85)';
+        for (let nx = t.x - tierW / 2 + 10; nx <= t.x + tierW / 2 - 14; nx += 16) {
+          ctx.fillRect(nx, ty + 4, 6, tierH - 6);
+        }
+      }
+
+      // Spire Kalasha
+      ctx.fillStyle = rimCol;
+      ctx.beginPath();
+      ctx.arc(t.x, baseY - t.h - 4, 3, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  }
 }
+

@@ -9,8 +9,8 @@ export const LEVEL_ONE = {
   name: "Broken Entrance",
   subtitle: "Sacred Threshold",
   worldWidth: 2600,
-  spawn: { x: 140, y: 480 },
-  theme: { backgroundPillars: [240, 520, 800, 1100, 1400, 1750, 2100, 2400] },
+  spawn: { x: 150, y: 480 },
+  theme: { backgroundPillars: [280, 540, 820, 1120, 1420, 1750, 2100, 2400] },
   hazards: { fallBoundary: 820 },
   platforms: {
     ground: [
@@ -70,13 +70,11 @@ export const LEVEL_ONE = {
     }
   ],
   decorations: [
-    { x: 80, y: 580, texture: 'pillar', originX: 0.5, originY: 1 },
     { x: 380, y: 580, texture: 'broken_statue', originX: 0.5, originY: 1 },
     { x: 540, y: 580, texture: 'fallen_column', originX: 0.5, originY: 1 },
     { x: 1040, y: 580, texture: 'ruin_banyan', originX: 0.5, originY: 1 },
     { x: 1460, y: 580, texture: 'broken_statue', originX: 0.5, originY: 1 },
-    { x: 2100, y: 440, texture: 'pillar', originX: 0.5, originY: 1 },
-    { x: 2540, y: 440, texture: 'pillar', originX: 0.5, originY: 1 }
+    { x: 2100, y: 440, texture: 'pillar', originX: 0.5, originY: 1 }
   ],
   goal: { x: 2320, y: 360 }
 };

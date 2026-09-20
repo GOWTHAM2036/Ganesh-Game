@@ -198,12 +198,20 @@ export class GameScene extends Phaser.Scene {
         .setScrollFactor(0.16)
         .setDepth(-85);
 
+      // Layer 4b: Distant Temple Gopuram Silhouettes for Level 1 Skyline (Depth -88, ScrollFactor: 0.22)
+      if (isLevel1) {
+        this.bgTempleSilhouettes = this.add.tileSprite(0, CANVAS_HEIGHT - 300, WORLD_WIDTH, 220, 'bg_temple_silhouettes')
+          .setOrigin(0, 0)
+          .setScrollFactor(0.22)
+          .setDepth(-88);
+      }
+
       // Layer 5: Handcrafted Modular Middle-Layer Ruins (Depth -70, ScrollFactor: 0.38)
       // Custom placement tailored to each level section to completely avoid wallpaper repetition!
       if (isLevel1) {
         // --- LEVEL 1: BROKEN ENTRANCE RUINS (worldWidth: 2600) ---
         // Section 1: Ceremonial entrance ruins
-        this.add.image(240, CANVAS_HEIGHT - 170, 'ruin_torana')
+        this.add.image(360, CANVAS_HEIGHT - 170, 'ruin_torana')
           .setOrigin(0.5, 1).setScrollFactor(0.38).setDepth(-70).setScale(0.95);
         this.add.image(520, CANVAS_HEIGHT - 150, 'ruin_banyan')
           .setOrigin(0.5, 1).setScrollFactor(0.38).setDepth(-70).setScale(0.9);
@@ -407,12 +415,31 @@ export class GameScene extends Phaser.Scene {
     this.platforms = this.physics.add.staticGroup();
     console.log('[PHYSICS] group created: platforms');
 
-    // Helper to create solid stone ground stretches
+    // Helper to create solid stone ground stretches with deep subterranean temple foundations
     const createGround = (startX, endX, y) => {
       const step = 128;
       for (let x = startX; x <= endX; x += step) {
         const slab = this.platforms.create(x, y, 'ground_slab').setOrigin(0, 0);
         slab.refreshBody();
+      }
+
+      // SUBTERRANEAN TEMPLE FOUNDATIONS:
+      // Extend ancient carved plinths (adhishthana) and ashlar foundation stonework all the way down off-screen
+      const terraceWidth = (endX - startX) + 128;
+      const foundationStartY = y + 64;
+      const foundationBottomY = GAME_CONFIG.WORLD_HEIGHT + 140; // 860px (well below camera bound)
+      const foundationHeight = foundationBottomY - foundationStartY;
+
+      // 1. Carved temple terrace plinth moulding (Adhishthana) directly beneath surface slabs
+      this.add.tileSprite(startX, foundationStartY, terraceWidth, 48, 'foundation_adhishthana')
+        .setOrigin(0, 0)
+        .setDepth(-3);
+
+      // 2. Heavy ashlar foundation masonry descending deep into solid bedrock
+      if (foundationHeight > 48) {
+        this.add.tileSprite(startX, foundationStartY + 48, terraceWidth, foundationHeight - 48, 'foundation_stone')
+          .setOrigin(0, 0)
+          .setDepth(-3);
       }
     };
 
@@ -441,28 +468,73 @@ export class GameScene extends Phaser.Scene {
     pillars.forEach(([x, y]) => createPillarPlatform(x, y));
 
     if (this.level.id === 1) {
-      // Decorative entrance torana arch pillars framing the starting terrace
-      this.add.image(60, 580, 'pillar').setOrigin(0.5, 1);
-      this.add.image(520, 580, 'pillar').setOrigin(0.5, 1);
-      this.add.image(140, 580, 'temple_lamp_lit').setOrigin(0.5, 1);
-      this.addLightHalo(140, 550, 95, 0.65);
-      this.add.image(280, 290, 'marigold_garland').setOrigin(0.5, 0);
-      this.add.image(380, 580, 'rubble_pile').setOrigin(0.5, 1).setDepth(2);
+      // 1. CHASM FOUNDATION PILLARS & ATMOSPHERE
+      // Chasm 1 (x: 600 to 1020):
+      // Deep carved foundation pillars supporting floating stepping stones
+      this.add.image(680, 530 + 16, 'chasm_foundation_pillar').setOrigin(0.5, 0).setDepth(-3);
+      this.add.image(820, 480 + 16, 'chasm_foundation_pillar').setOrigin(0.5, 0).setDepth(-3);
 
-      // SECTION 2: Sunken courtyard broken colonnade & rubble
+      // Chasm 1 atmospheric gorge mist
+      this.add.tileSprite(580, 580, 460, 160, 'chasm_mist').setOrigin(0, 0).setDepth(-2).setAlpha(0.85);
+
+      // Chasm 2 (x: 1540 to 2060):
+      // Deep carved foundation pillars supporting floating stepping stones
+      this.add.image(1650, 520 + 16, 'chasm_foundation_pillar').setOrigin(0.5, 0).setDepth(-3);
+      this.add.image(1910, 430 + 16, 'chasm_foundation_pillar').setOrigin(0.5, 0).setDepth(-3);
+
+      // Chasm 2 atmospheric gorge mist
+      this.add.tileSprite(1520, 540, 560, 190, 'chasm_mist').setOrigin(0, 0).setDepth(-2).setAlpha(0.85);
+
+      // Rising sacred chasm motes (spiritual golden-cyan motes rising from the depths of the ancient gorge)
+      this.chasmMotesEmitter = this.add.particles(0, 0, 'particle_sparkle', {
+        x: { min: 580, max: 2060 },
+        y: { min: 660, max: 740 },
+        quantity: 1,
+        frequency: 280,
+        lifespan: { min: 2800, max: 4600 },
+        speedY: { min: -40, max: -15 },
+        speedX: { min: -10, max: 10 },
+        scale: { start: 0.75, end: 0.1 },
+        alpha: { start: 0.55, end: 0 },
+        tint: [0xffd700, 0xffaa00, 0x00e5ff],
+        blendMode: 'ADD'
+      });
+
+      // 2. CEREMONIAL ENTRANCE MANDAPA PORTAL (Framing Left Edge: x: 0 to 140)
+      this.entrancePortal = this.add.image(70, 580, 'entrance_mandapa_portal')
+        .setOrigin(0.5, 1)
+        .setDepth(1);
+      
+      // Auspicious entrance diya lamp greeting the player
+      this.add.image(160, 580, 'temple_lamp_lit').setOrigin(0.5, 1);
+      this.addLightHalo(160, 550, 95, 0.7);
+
+      // First terrace framing pillar before the first chasm
+      this.add.image(540, 580, 'pillar').setOrigin(0.5, 1);
+      this.add.image(300, 290, 'marigold_garland').setOrigin(0.5, 0);
+      this.add.image(420, 580, 'rubble_pile').setOrigin(0.5, 1).setDepth(2);
+
+      // 3. SECTION 2: Sunken courtyard broken colonnade & rubble
       this.add.image(1040, 580, 'broken_pillar').setOrigin(0.5, 1);
       this.add.image(1000, 580, 'rubble_pile').setOrigin(0.5, 1).setDepth(2);
       this.add.image(1500, 580, 'broken_pillar').setOrigin(0.5, 1);
       this.add.image(1460, 580, 'rubble_pile').setOrigin(0.5, 1).setDepth(2);
 
-      // SECTION 3: Grand temple pillars & lit lamps framing Sanctum Altar
-      this.add.image(2100, 440, 'pillar').setOrigin(0.5, 1);
-      this.add.image(2540, 440, 'pillar').setOrigin(0.5, 1);
-      this.add.image(2240, 440, 'temple_lamp_lit').setOrigin(0.5, 1);
-      this.add.image(2400, 440, 'temple_lamp_lit').setOrigin(0.5, 1);
-      this.addLightHalo(2240, 410, 95, 0.65);
-      this.addLightHalo(2400, 410, 95, 0.65);
+      // 4. SECTION 3: Sacred Sanctum Altar Framing & Grand Back Wall
+      // Twin carved ceremonial pillars framing the Sanctum Altar (Altar at x: 2320, y: 360)
+      this.add.image(2220, 440, 'pillar').setOrigin(0.5, 1);
+      this.add.image(2420, 440, 'pillar').setOrigin(0.5, 1);
+      this.add.image(2220, 440, 'temple_lamp_lit').setOrigin(0.5, 1);
+      this.add.image(2420, 440, 'temple_lamp_lit').setOrigin(0.5, 1);
+      this.addLightHalo(2220, 410, 95, 0.7);
+      this.addLightHalo(2420, 410, 95, 0.7);
       this.add.image(2320, 220, 'marigold_garland').setOrigin(0.5, 0).setScale(1.15);
+
+      // Grand Sanctum Garbhagriha Back Wall & Vimana Facade (Framing Right Edge: x: 2460 to 2600)
+      this.sanctumBackWall = this.add.image(2530, 440, 'sanctum_back_wall')
+        .setOrigin(0.5, 1)
+        .setDepth(1);
+      this.addLightHalo(2515, 300, 85, 0.65);
     } else if (this.level.id === 2) {
       // Atmospheric lit lamps and garlands in courtyard
       this.add.image(960, 580, 'temple_lamp_lit').setOrigin(0.5, 1);
@@ -557,9 +629,10 @@ export class GameScene extends Phaser.Scene {
    */
   setupCamera() {
     const camera = this.cameras.main;
-    camera.setBounds(0, 0, this.level.worldWidth, GAME_CONFIG.WORLD_HEIGHT);
+    const boundsHeight = (this.level.id === 1) ? 680 : GAME_CONFIG.WORLD_HEIGHT;
+    camera.setBounds(0, 0, this.level.worldWidth, boundsHeight);
     camera.setZoom(1.18);
-    camera.startFollow(this.player, true, 0.08, 0.08, 0, 20);
+    camera.startFollow(this.player, true, 0.08, 0.08, 0, -10);
     camera.setDeadzone(50, 30);
   }
 

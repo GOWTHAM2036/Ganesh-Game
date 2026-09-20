@@ -34,6 +34,7 @@ export class TextureGenerator {
     this.createTempleGateArchTexture(scene);
     this.createCollectibleTextures(scene);
     this.createRestorationPillarTextures(scene);
+    this.createLevelOneTextures(scene);
     this.createLevelTwoTextures(scene);
     this.createLevelThreeTextures(scene);
     this.createHeartTextures(scene);
@@ -1040,6 +1041,67 @@ export class TextureGenerator {
       ctx.textAlign = 'center';
       ctx.fillText('ॐ', 40, 85);
 
+      canvas.refresh();
+    }
+  }
+
+  /**
+   * Level 1 Textures: Foundations, Chasm Pillars, Mist, Entrance Portal, Sanctum Back Wall, Skyline
+   */
+  static createLevelOneTextures(scene) {
+    // 1. Subterranean Ashlar Foundation Stone (128x128 seamless)
+    if (!scene.textures.exists('foundation_stone')) {
+      const canvas = scene.textures.createCanvas('foundation_stone', 128, 128);
+      const ctx = canvas.getContext();
+      ArtDirection.drawFoundationStone(ctx, 128, 128);
+      canvas.refresh();
+    }
+
+    // 2. Carved Adhishthana Plinth Base (128x48)
+    if (!scene.textures.exists('foundation_adhishthana')) {
+      const canvas = scene.textures.createCanvas('foundation_adhishthana', 128, 48);
+      const ctx = canvas.getContext();
+      ArtDirection.drawFoundationAdhishthana(ctx, 128, 48);
+      canvas.refresh();
+    }
+
+    // 3. Deep Chasm Foundation Pillar (80x280)
+    if (!scene.textures.exists('chasm_foundation_pillar')) {
+      const canvas = scene.textures.createCanvas('chasm_foundation_pillar', 80, 280);
+      const ctx = canvas.getContext();
+      ArtDirection.drawChasmFoundationPillar(ctx, 80, 280);
+      canvas.refresh();
+    }
+
+    // 4. Ethereal Chasm Mist (640x120)
+    if (!scene.textures.exists('chasm_mist')) {
+      const canvas = scene.textures.createCanvas('chasm_mist', 640, 120);
+      const ctx = canvas.getContext();
+      ArtDirection.drawChasmMist(ctx, 640, 120);
+      canvas.refresh();
+    }
+
+    // 5. Sacred Entrance Mandapa Portal (140x360)
+    if (!scene.textures.exists('entrance_mandapa_portal')) {
+      const canvas = scene.textures.createCanvas('entrance_mandapa_portal', 140, 360);
+      const ctx = canvas.getContext();
+      ArtDirection.drawEntranceMandapaPortal(ctx, 140, 360);
+      canvas.refresh();
+    }
+
+    // 6. Sanctum Garbhagriha Back Wall & Vimana (140x380)
+    if (!scene.textures.exists('sanctum_back_wall')) {
+      const canvas = scene.textures.createCanvas('sanctum_back_wall', 140, 380);
+      const ctx = canvas.getContext();
+      ArtDirection.drawSanctumBackWall(ctx, 140, 380);
+      canvas.refresh();
+    }
+
+    // 7. Distant Temple Gopuram Silhouettes (1280x220)
+    if (!scene.textures.exists('bg_temple_silhouettes')) {
+      const canvas = scene.textures.createCanvas('bg_temple_silhouettes', 1280, 220);
+      const ctx = canvas.getContext();
+      ArtDirection.drawDistantTempleSilhouettes(ctx, 1280, 220);
       canvas.refresh();
     }
   }
