@@ -7,7 +7,12 @@
 html, body {
   width: 100%;
   height: 100%;
-  overflow: hidden; /* Absolutely no browser page scrollbars */
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* Completely prevents unwanted page scrollbars */
+  display: flex;
+  justify-content: center;
+  align-items: center;
   background: radial-gradient(circle at center, #261611 0%, #110906 100%);
   color: #f7e1b5;
   font-family: 'Cinzel', 'Yatra One', Georgia, serif;
@@ -23,34 +28,43 @@ html, body {
   pointer-events: none;
 }
 
+/* 
+ * Unified responsive game wrapper:
+ * Header, game container, and footer share identical left/right boundaries,
+ * perfectly centered inside the viewport with zero horizontal overflow.
+ */
 #game-wrapper {
+  width: 100%;
+  max-width: min(calc(100vw - 24px), 1280px, calc((100vh - 104px) * 16 / 9));
+  max-width: min(calc(100vw - 24px), 1280px, calc((100dvh - 104px) * 16 / 9));
+  margin: 0 auto;
+  padding: clamp(2px, 0.8vh, 6px) 0;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 100vw;
-  height: 100vh;
-  height: 100dvh;
-  max-width: 100vw;
-  max-height: 100dvh;
-  padding: clamp(4px, 1.2vh, 12px) clamp(8px, 1.6vw, 16px);
-  gap: clamp(4px, 0.8vh, 10px);
-  box-sizing: border-box;
+  gap: clamp(4px, 0.8vh, 8px);
   overflow: hidden;
 }
 
 #game-header {
+  width: 100%;
+  max-width: 100%;
   flex: 0 0 auto;
   text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   padding: 0;
   margin: 0;
 }
 
 #game-header h1 {
   font-family: 'Cinzel Decorative', 'Cinzel', Georgia, serif;
-  font-size: clamp(1.2rem, 3.2vh, 2rem);
+  font-size: clamp(1rem, 2.6vh, 1.85rem);
   font-weight: 700;
-  letter-spacing: clamp(1.5px, 0.3vw, 4px);
+  letter-spacing: clamp(1.5px, 0.25vw, 3.5px);
   text-transform: uppercase;
   color: #ffc966;
   background: linear-gradient(180deg, #fff3d1 0%, #ffc966 35%, #e69500 70%, #b36b00 100%);
@@ -58,37 +72,41 @@ html, body {
   -webkit-text-fill-color: transparent;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.95)) drop-shadow(0 0 18px rgba(255, 170, 0, 0.28));
   line-height: 1.15;
+  white-space: nowrap;
 }
 
 #game-container {
-  /* Dynamic 16:9 sizing constrained simultaneously by viewport width and viewport height */
-  position: relative;
-  width: min(calc(100vw - 24px), calc((100dvh - 92px) * 16 / 9), 1280px);
-  height: min(calc((100vw - 24px) * 9 / 16), calc(100dvh - 92px), 720px);
+  width: 100%;
+  max-width: 100%;
   aspect-ratio: 16 / 9;
+  position: relative;
+  box-sizing: border-box;
   border-radius: 8px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8), 0 0 25px rgba(230, 138, 0, 0.25);
-  border: 3px solid #8c5a2b;
-  overflow: hidden;
+  /* 
+   * Box-shadow creates the ornate golden temple border without modifying 
+   * getBoundingClientRect() content dimensions or distorting Phaser's canvas scale math.
+   */
+  box-shadow: 0 0 0 3px #8c5a2b, 0 10px 40px rgba(0, 0, 0, 0.8), 0 0 25px rgba(230, 138, 0, 0.25);
   background-color: #1a0f0a;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-shrink: 0;
+  overflow: hidden;
+  margin: 0 auto;
+  flex: 0 0 auto;
+  display: block;
 }
 
 #game-container canvas {
-  width: 100% !important;
-  height: 100% !important;
   display: block;
-  border-radius: 5px;
+  border-radius: 6px;
+  /* Phaser ScaleManager handles exact display size and positioning */
 }
 
 #game-footer {
-  flex: 0 0 auto;
   width: 100%;
+  max-width: 100%;
+  flex: 0 0 auto;
   display: flex;
   justify-content: center;
+  align-items: center;
   padding: 0;
   margin: 0;
 }
@@ -98,25 +116,25 @@ html, body {
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
-  gap: clamp(8px, 1.4vw, 18px);
+  gap: clamp(6px, 1.2vw, 16px);
   font-family: 'Outfit', 'Cinzel', -apple-system, sans-serif;
-  font-size: clamp(0.72rem, 1.5vh, 0.85rem);
+  font-size: clamp(0.7rem, 1.4vh, 0.82rem);
   letter-spacing: 0.4px;
   color: #dec4a6;
   background: rgba(36, 18, 11, 0.9);
-  padding: clamp(3px, 0.6vh, 6px) clamp(10px, 1.4vw, 20px);
+  padding: clamp(3px, 0.5vh, 5px) clamp(10px, 1.2vw, 18px);
   border-radius: 20px;
   border: 1px solid #73451e;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55);
-  white-space: nowrap;
+  max-width: 100%;
 }
 
 kbd {
   display: inline-block;
-  padding: 1px 6px;
+  padding: 1px 5px;
   font-family: 'Outfit', -apple-system, sans-serif;
   font-weight: 700;
-  font-size: clamp(0.68rem, 1.4vh, 0.8rem);
+  font-size: clamp(0.66rem, 1.3vh, 0.78rem);
   letter-spacing: 0.5px;
   color: #ffe6b3;
   background: #4a2810;
@@ -125,38 +143,34 @@ kbd {
   box-shadow: 0 2px 0 #241105;
 }
 
-/* Compact screens & laptops in landscape / short viewports */
+/* Compact screens & short viewports */
 @media (max-height: 640px) {
   #game-wrapper {
-    padding: 3px 8px;
+    max-width: min(calc(100vw - 16px), 1280px, calc((100vh - 76px) * 16 / 9));
+    max-width: min(calc(100vw - 16px), 1280px, calc((100dvh - 76px) * 16 / 9));
     gap: 3px;
+    padding: 2px 0;
   }
   #game-header h1 {
-    font-size: clamp(1rem, 3vh, 1.25rem);
+    font-size: clamp(0.95rem, 2.6vh, 1.2rem);
     letter-spacing: 1.5px;
   }
   .controls-guide {
-    font-size: 0.7rem;
-    padding: 2px 10px;
-    gap: 8px;
-  }
-  #game-container {
-    width: min(calc(100vw - 16px), calc((100dvh - 66px) * 16 / 9), 1280px);
-    height: min(calc((100vw - 16px) * 9 / 16), calc(100dvh - 66px), 720px);
-    border-width: 2px;
+    font-size: 0.68rem;
+    padding: 2px 8px;
+    gap: 6px;
   }
 }
 
-/* Very small mobile screens or extreme zoom */
+/* Narrow screens or high browser zoom */
 @media (max-width: 768px) {
   #game-header h1 {
-    font-size: clamp(1.1rem, 2.5vh, 1.5rem);
-    letter-spacing: 2px;
+    font-size: clamp(0.95rem, 2.2vh, 1.35rem);
+    letter-spacing: 1.8px;
   }
   .controls-guide {
-    font-size: 0.72rem;
-    gap: 8px;
-    padding: 3px 10px;
-    white-space: normal;
+    font-size: 0.68rem;
+    gap: 6px;
+    padding: 2px 8px;
   }
 }

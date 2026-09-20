@@ -14,7 +14,11 @@ const config = {
   height: GAME_CONFIG.CANVAS_HEIGHT,
   scale: {
     mode: Phaser.Scale.FIT,
-    autoCenter: Phaser.Scale.CENTER_BOTH
+    autoCenter: Phaser.Scale.CENTER_BOTH,
+    width: GAME_CONFIG.CANVAS_WIDTH,
+    height: GAME_CONFIG.CANVAS_HEIGHT,
+    parent: 'game-container',
+    resizeInterval: 100
   },
   physics: {
     default: 'arcade',
@@ -39,6 +43,30 @@ const config = {
 
 // Initialize the game instance
 const game = new Phaser.Game(config);
+
+// Ensure scale manager refreshes instantly on container or window resize / zoom change
+let resizeTimeout = null;
+const refreshScale = () => {
+  if (game?.scale) {
+    game.scale.getParentBounds();
+    game.scale.refresh();
+  }
+  clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout(() => {
+    if (game?.scale) {
+      game.scale.getParentBounds();
+      game.scale.refresh();
+    }
+  }, 50);
+};
+
+window.addEventListener('resize', refreshScale);
+
+const containerEl = document.getElementById('game-container');
+if (containerEl && typeof ResizeObserver !== 'undefined') {
+  const resizeObserver = new ResizeObserver(refreshScale);
+  resizeObserver.observe(containerEl);
+}
 
 // Expose game instance for QA & verification
 window.__GANESHA_GAME__ = game;
