@@ -33,15 +33,22 @@ export class UIScene extends Phaser.Scene {
     this.gameScene.events.on('resources-changed', this.updateResources, this);
 
     if (this.levelTitleText) {
-      this.levelTitleText.setText(gameScene.level?.name?.toUpperCase() || "GANESHA'S BROKEN TEMPLE");
+      this.levelTitleText.setText(this.getLevelTitleString(gameScene.level));
     }
     if (this.levelSubtitleText) {
-      this.levelSubtitleText.setText(gameScene.level?.subtitle || '');
+      this.levelSubtitleText.setText(gameScene.level?.subtitle || 'Sacred Threshold');
     }
   }
 
+  /** Formats canonical level title e.g. "LEVEL 1 — BROKEN ENTRANCE" */
+  getLevelTitleString(level) {
+    const id = level?.id || 1;
+    const name = level?.name || 'Broken Entrance';
+    return `LEVEL ${id} — ${name.toUpperCase()}`;
+  }
+
   /**
-   * Top HUD display with temple title and quick controls reference
+   * Top HUD display with temple title, objective reminder, and quick controls
    */
   createHUD() {
     UIScene.hudCount = (UIScene.hudCount || 0) + 1;
@@ -57,50 +64,64 @@ export class UIScene extends Phaser.Scene {
     topBar.lineStyle(1, 0x8a5229, 0.6);
     topBar.lineBetween(0, 106, 1280, 106);
 
-    // Temple Title
-    this.levelTitleText = this.add.text(28, 16, this.gameScene?.level?.name?.toUpperCase() || "GANESHA'S BROKEN TEMPLE", {
-      fontFamily: "'Cinzel', Georgia, serif",
-      fontSize: '20px',
+    // Level Title (Majestic inscribed decorative serif)
+    const titleStr = this.getLevelTitleString(this.gameScene?.level);
+    this.levelTitleText = this.add.text(28, 15, titleStr, {
+      fontFamily: "'Cinzel Decorative', 'Cinzel', Georgia, serif",
+      fontSize: '18px',
       fontStyle: 'bold',
-      color: '#ffb347',
-      stroke: '#000000',
+      color: '#ffd066',
+      stroke: '#140802',
       strokeThickness: 3
     });
 
-    this.levelSubtitleText = this.add.text(28, 40, this.gameScene?.level?.subtitle || 'Prologue: The Shattered Outer Sanctum', {
+    this.levelSubtitleText = this.add.text(28, 39, this.gameScene?.level?.subtitle || 'Sacred Threshold', {
       fontFamily: "'Cinzel', Georgia, serif",
-      fontSize: '13px',
+      fontSize: '12.5px',
+      fontStyle: '600',
       color: '#d4a373'
     });
 
-    // Objective Reminder
+    // Objective Reminder (Centered badge with high-contrast readable font)
     this.currentObjectiveStage = 'reach_entrance';
-    this.objectiveText = this.add.text(690, 20, "Goal: Collect Sacred Stones and reach the Broken Entrance.", {
-      fontFamily: "'Cinzel', Georgia, serif",
-      fontSize: '13px',
+    this.objectiveContainer = this.add.container(680, 26);
+    this.objectiveBg = this.add.graphics();
+    this.objectiveText = this.add.text(0, 0, "GOAL: Collect Sacred Stones and reach the Broken Entrance.", {
+      fontFamily: "'Outfit', 'Cinzel', -apple-system, sans-serif",
+      fontSize: '12.5px',
       fontStyle: '600',
-      color: '#ffe099',
-      stroke: '#000000',
+      color: '#fff0cc',
+      stroke: '#140802',
       strokeThickness: 2
-    }).setOrigin(0.5, 0);
+    }).setOrigin(0.5, 0.5);
 
-    // Controls Pill (Top-Right)
-    const controlsContainer = this.add.container(1130, 66);
+    this.redrawObjectiveBadge();
+    this.objectiveContainer.add([this.objectiveBg, this.objectiveText]);
+
+    // Restart Pill (Top-Right)
+    const controlsContainer = this.add.container(1150, 48);
     const bgPill = this.add.graphics();
-    bgPill.fillStyle(0x3d2011, 0.9);
-    bgPill.lineStyle(1.5, 0x8a5229, 1);
-    bgPill.fillRoundedRect(-120, -10, 240, 36, 18);
-    bgPill.strokeRoundedRect(-120, -10, 240, 36, 18);
+    const drawPill = (hover = false) => {
+      bgPill.clear();
+      bgPill.fillStyle(hover ? 0x542810 : 0x3a1d0e, 0.92);
+      bgPill.lineStyle(1.5, hover ? 0xffb84d : 0x8a5229, 1);
+      bgPill.fillRoundedRect(-95, -16, 190, 32, 16);
+      bgPill.strokeRoundedRect(-95, -16, 190, 32, 16);
+    };
+    drawPill(false);
 
-    const restartText = this.add.text(0, 8, "Restart: [R] or Click Here", {
-      fontFamily: "'Cinzel', sans-serif",
+    const restartText = this.add.text(0, 0, "Restart: [R] / Click", {
+      fontFamily: "'Outfit', 'Cinzel', -apple-system, sans-serif",
       fontSize: '12px',
+      fontStyle: '600',
       color: '#ffd280'
     }).setOrigin(0.5, 0.5);
 
     controlsContainer.add([bgPill, restartText]);
-    controlsContainer.setSize(240, 36);
+    controlsContainer.setSize(190, 32);
     controlsContainer.setInteractive({ useHandCursor: true });
+    controlsContainer.on('pointerover', () => drawPill(true));
+    controlsContainer.on('pointerout', () => drawPill(false));
     controlsContainer.on('pointerdown', () => {
       const gs = this.scene.get('GameScene');
       if (gs && typeof gs.restartLevel === 'function') {
@@ -108,14 +129,28 @@ export class UIScene extends Phaser.Scene {
       }
     });
 
-    this.resourceText = this.add.text(28, 62, '', {
-      fontFamily: "'Cinzel', Georgia, serif",
-      fontSize: '12px',
-      color: '#ffe099',
-      stroke: '#000000',
+    // Resource Counters (Crisp readable typography)
+    this.resourceText = this.add.text(28, 60, '', {
+      fontFamily: "'Outfit', 'Cinzel', -apple-system, sans-serif",
+      fontSize: '12.5px',
+      fontStyle: '600',
+      color: '#ffe8b3',
+      stroke: '#140802',
       strokeThickness: 2,
-      lineSpacing: 4
+      lineSpacing: 5
     });
+  }
+
+  /** Redraws objective badge background based on text width */
+  redrawObjectiveBadge() {
+    if (!this.objectiveBg || !this.objectiveText) return;
+    const width = Math.max(380, this.objectiveText.width + 36);
+    const half = width / 2;
+    this.objectiveBg.clear();
+    this.objectiveBg.fillStyle(0x221107, 0.8);
+    this.objectiveBg.lineStyle(1.5, 0x8a5229, 0.85);
+    this.objectiveBg.fillRoundedRect(-half, -14, width, 28, 7);
+    this.objectiveBg.strokeRoundedRect(-half, -14, width, 28, 7);
   }
 
   /** Updates the single centralized current-level resource readout. */
@@ -123,24 +158,24 @@ export class UIScene extends Phaser.Scene {
     if (!this.resourceText) return;
     const restoration = `Restoration: ${resources.restorationProgress || 0}/${resources.totalRestorations || 1}`;
     const mechanisms = (resources.totalMechanisms > 0)
-      ? `   Mechanisms: ${resources.mechanismsActivated || 0}/${resources.totalMechanisms}`
+      ? `   •   Mechanisms: ${resources.mechanismsActivated || 0}/${resources.totalMechanisms}`
       : '';
     this.resourceText.setText(
-      `Modaks: ${resources.modaks}   Sacred Stones: ${resources.sacredStones}   Lotus: ${resources.lotuses}\n` +
-      `Coins: ${resources.templeCoins}   Scriptures: ${resources.scriptures}   Score: ${resources.score}   |   ${restoration}${mechanisms}`
+      `Modaks: ${resources.modaks}   •   Sacred Stones: ${resources.sacredStones}   •   Lotus: ${resources.lotuses}\n` +
+      `Coins: ${resources.templeCoins}   •   Scriptures: ${resources.scriptures}   •   Score: ${resources.score}   |   ${restoration}${mechanisms}`
     );
   }
 
   /** Dynamically updates current level progression objective reminder */
   updateObjective(text) {
     if (!this.objectiveText) return;
-    this.objectiveText.setText(`Goal: ${text}`);
-    // Subtle golden flash pulse to draw player's eye
+    this.objectiveText.setText(`GOAL: ${text}`);
+    this.redrawObjectiveBadge();
     this.tweens.add({
-      targets: this.objectiveText,
-      scaleX: 1.08,
-      scaleY: 1.08,
-      duration: 180,
+      targets: this.objectiveContainer,
+      scaleX: 1.05,
+      scaleY: 1.05,
+      duration: 160,
       yoyo: true,
       ease: 'Sine.easeInOut'
     });
@@ -159,33 +194,35 @@ export class UIScene extends Phaser.Scene {
    */
   createVictoryOverlay() {
     this.victoryContainer = this.add.container(640, 360);
+    this.victoryContainer.setDepth(500);
     this.victoryContainer.setVisible(false);
     this.victoryContainer.setAlpha(0);
 
-    // Dim backdrop
-    const dimBg = this.add.rectangle(0, 0, 1280, 720, 0x110704, 0.75);
+    // Dim backdrop - rich darkening that blocks inputs behind card
+    const dimBg = this.add.rectangle(0, 0, 1280, 720, 0x0a0503, 0.88);
+    dimBg.setInteractive();
 
-    // Sacred Temple Card Frame
+    // Sacred Temple Card Frame (solid opaque background for maximum legibility)
     const card = this.add.graphics();
-    card.fillStyle(0x2b150c, 0.95);
+    card.fillStyle(0x221109, 0.98);
     card.lineStyle(3, 0xffb84d, 1);
-    card.fillRoundedRect(-310, -215, 620, 430, 16);
-    card.strokeRoundedRect(-310, -215, 620, 430, 16);
+    card.fillRoundedRect(-320, -220, 640, 440, 16);
+    card.strokeRoundedRect(-320, -220, 640, 440, 16);
 
     // Inner gold border
-    card.lineStyle(1, 0x8a5229, 0.8);
-    card.strokeRoundedRect(-298, -203, 596, 406, 12);
+    card.lineStyle(1.5, 0x8a5229, 0.9);
+    card.strokeRoundedRect(-308, -208, 616, 416, 12);
 
     // Corner decorative gold brackets
     card.fillStyle(0xffd700, 1);
-    card.fillRect(-310, -215, 18, 4);
-    card.fillRect(-310, -215, 4, 18);
-    card.fillRect(292, -215, 18, 4);
-    card.fillRect(306, -215, 4, 18);
-    card.fillRect(-310, 211, 18, 4);
-    card.fillRect(-310, 197, 4, 18);
-    card.fillRect(292, 211, 18, 4);
-    card.fillRect(306, 197, 4, 18);
+    card.fillRect(-320, -220, 20, 4);
+    card.fillRect(-320, -220, 4, 20);
+    card.fillRect(300, -220, 20, 4);
+    card.fillRect(316, -220, 4, 20);
+    card.fillRect(-320, 216, 20, 4);
+    card.fillRect(-320, 200, 4, 20);
+    card.fillRect(300, 216, 20, 4);
+    card.fillRect(316, 200, 4, 20);
 
     // Victory Title
     this.victoryTitle = this.add.text(0, -165, "LEVEL 1 COMPLETE", {
@@ -193,14 +230,15 @@ export class UIScene extends Phaser.Scene {
       fontSize: '26px',
       fontStyle: 'bold',
       color: '#ffd066',
-      stroke: '#000000',
-      strokeThickness: 4
+      stroke: '#140802',
+      strokeThickness: 4,
+      letterSpacing: 1.5
     }).setOrigin(0.5, 0.5);
 
     // Subtitle
     this.victorySubtitle = this.add.text(0, -130, "THE TEMPLE AWAKENS", {
       fontFamily: "'Cinzel', Georgia, serif",
-      fontSize: '14px',
+      fontSize: '13.5px',
       fontStyle: 'bold',
       color: '#ffb347',
       letterSpacing: 2
@@ -219,12 +257,13 @@ export class UIScene extends Phaser.Scene {
       fontSize: '13px',
       color: '#f5deb3',
       align: 'center',
-      lineSpacing: 5
+      lineSpacing: 6
     }).setOrigin(0.5, 0.5);
 
     this.victorySummary = this.add.text(0, 24, '', {
-      fontFamily: "'Cinzel', Georgia, serif",
+      fontFamily: "'Outfit', 'Cinzel', -apple-system, sans-serif",
       fontSize: '13px',
+      fontStyle: '600',
       color: '#ffe099',
       align: 'center',
       lineSpacing: 6
@@ -236,8 +275,8 @@ export class UIScene extends Phaser.Scene {
     this.drawCardButton(this.actionBtnBg, 0x944a14, 0xffbb33);
 
     this.actionBtnText = this.add.text(0, 0, "ENTER FALLEN COURTYARD", {
-      fontFamily: "'Cinzel', sans-serif",
-      fontSize: '11px',
+      fontFamily: "'Cinzel', 'Outfit', sans-serif",
+      fontSize: '11.5px',
       fontStyle: 'bold',
       color: '#ffffff'
     }).setOrigin(0.5, 0.5);
@@ -245,6 +284,22 @@ export class UIScene extends Phaser.Scene {
     this.actionBtn.add([this.actionBtnBg, this.actionBtnText]);
     this.actionBtn.setSize(240, 40);
     this.actionBtn.setInteractive({ useHandCursor: true });
+    this.actionBtn.on('pointerover', () => {
+      const gs = this.scene.get('GameScene');
+      if (gs?.level?.id === 3) {
+        this.drawCardButton(this.actionBtnBg, 0x4d3e37, 0xa38573);
+      } else {
+        this.drawCardButton(this.actionBtnBg, 0xb85c18, 0xffd280);
+      }
+    });
+    this.actionBtn.on('pointerout', () => {
+      const gs = this.scene.get('GameScene');
+      if (gs?.level?.id === 3) {
+        this.drawCardButton(this.actionBtnBg, 0x3d302a, 0x8a7060);
+      } else {
+        this.drawCardButton(this.actionBtnBg, 0x944a14, 0xffbb33);
+      }
+    });
     this.actionBtn.on('pointerdown', () => {
       const gs = this.scene.get('GameScene');
       if (!gs) return;
@@ -266,8 +321,8 @@ export class UIScene extends Phaser.Scene {
     this.drawCardButton(this.restartBtnBg, 0x4a2410, 0xd48833);
 
     const restartBtnText = this.add.text(0, 0, "RESTART LEVEL (Press R)", {
-      fontFamily: "'Cinzel', sans-serif",
-      fontSize: '11px',
+      fontFamily: "'Cinzel', 'Outfit', sans-serif",
+      fontSize: '11.5px',
       fontStyle: 'bold',
       color: '#ffdcb3'
     }).setOrigin(0.5, 0.5);
@@ -275,6 +330,12 @@ export class UIScene extends Phaser.Scene {
     this.restartBtn.add([this.restartBtnBg, restartBtnText]);
     this.restartBtn.setSize(240, 40);
     this.restartBtn.setInteractive({ useHandCursor: true });
+    this.restartBtn.on('pointerover', () => {
+      this.drawCardButton(this.restartBtnBg, 0x613217, 0xffbb33);
+    });
+    this.restartBtn.on('pointerout', () => {
+      this.drawCardButton(this.restartBtnBg, 0x4a2410, 0xd48833);
+    });
     this.restartBtn.on('pointerdown', () => {
       const gs = this.scene.get('GameScene');
       if (gs && typeof gs.restartLevel === 'function') {
@@ -305,7 +366,7 @@ export class UIScene extends Phaser.Scene {
       fontSize: '14px',
       fontStyle: 'bold',
       color: '#ffd066',
-      stroke: '#1a0900',
+      stroke: '#140802',
       strokeThickness: 3,
       align: 'center'
     }).setOrigin(0.5, 0.5);
@@ -384,6 +445,16 @@ export class UIScene extends Phaser.Scene {
    * Triggers victory animation
    */
   showVictory(state) {
+    if (this.bannerContainer) {
+      if (this.bannerTween) this.bannerTween.stop();
+      if (this.bannerTimer) this.bannerTimer.remove();
+      this.bannerContainer.setVisible(false);
+    }
+    const gs = this.scene.get('GameScene');
+    if (gs && gs.interactionManager) {
+      gs.interactionManager.clearActive();
+    }
+
     const levelId = state?.currentLevel || this.gameScene?.level?.id || 1;
     if (levelId === 1) {
       if (this.victoryTitle) this.victoryTitle.setText("LEVEL 1 COMPLETE");

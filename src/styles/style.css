@@ -16,6 +16,14 @@ body {
   user-select: none;
 }
 
+.font-preloader {
+  position: absolute;
+  left: -9999px;
+  top: -9999px;
+  visibility: hidden;
+  pointer-events: none;
+}
+
 #game-wrapper {
   display: flex;
   flex-direction: column;
@@ -28,22 +36,21 @@ body {
 
 #game-header {
   text-align: center;
+  padding: 4px 0 2px 0;
 }
 
 #game-header h1 {
-  font-size: 2rem;
-  font-weight: 900;
-  letter-spacing: 2px;
-  color: #ffb84d;
-  text-shadow: 0 0 12px rgba(255, 166, 0, 0.6), 0 2px 4px #000;
-}
-
-#game-header .subtitle {
-  font-size: 0.95rem;
-  color: #d1a876;
-  letter-spacing: 1.5px;
+  font-family: 'Cinzel Decorative', 'Cinzel', Georgia, serif;
+  font-size: 2.25rem;
+  font-weight: 700;
+  letter-spacing: 4px;
   text-transform: uppercase;
-  margin-top: 2px;
+  color: #ffc966;
+  background: linear-gradient(180deg, #fff3d1 0%, #ffc966 35%, #e69500 70%, #b36b00 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.95)) drop-shadow(0 0 18px rgba(255, 170, 0, 0.28));
+  line-height: 1.2;
 }
 
 #game-container {
@@ -77,25 +84,41 @@ body {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
+  align-items: center;
   gap: 20px;
-  font-size: 0.85rem;
-  color: #d9b88f;
-  background: rgba(43, 23, 14, 0.85);
-  padding: 8px 18px;
-  border-radius: 20px;
-  border: 1px solid #6b411d;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  font-family: 'Outfit', 'Cinzel', -apple-system, sans-serif;
+  font-size: 0.88rem;
+  letter-spacing: 0.4px;
+  color: #dec4a6;
+  background: rgba(36, 18, 11, 0.9);
+  padding: 9px 24px;
+  border-radius: 24px;
+  border: 1px solid #73451e;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55);
 }
 
 kbd {
   display: inline-block;
-  padding: 2px 7px;
-  font-family: monospace;
-  font-weight: bold;
-  font-size: 0.85rem;
-  color: #ffe8b3;
+  padding: 2px 8px;
+  font-family: 'Outfit', -apple-system, sans-serif;
+  font-weight: 700;
+  font-size: 0.82rem;
+  letter-spacing: 0.5px;
+  color: #ffe6b3;
   background: #4a2810;
-  border: 1px solid #996533;
+  border: 1px solid #a66c38;
   border-radius: 4px;
-  box-shadow: 0 2px 0 #2b1406;
+  box-shadow: 0 2px 0 #241105;
+}
+
+@media (max-width: 768px) {
+  #game-header h1 {
+    font-size: 1.6rem;
+    letter-spacing: 2px;
+  }
+  .controls-guide {
+    font-size: 0.78rem;
+    gap: 12px;
+    padding: 7px 16px;
+  }
 }

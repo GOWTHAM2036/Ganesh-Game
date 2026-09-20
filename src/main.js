@@ -40,9 +40,7 @@ const config = {
 // Initialize the game instance
 const game = new Phaser.Game(config);
 
-// Expose game instance in development for easy debugging
-if (import.meta.env.DEV) {
-  window.__GANESHA_GAME__ = game;
-}
+// Expose game instance for QA & verification
+window.__GANESHA_GAME__ = game;
 
 export default game;

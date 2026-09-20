@@ -48,19 +48,19 @@ export class InteractionManager {
     this.keyBadge.strokeRoundedRect(-14, -12, 24, 24, 6);
 
     this.keyText = this.scene.add.text(-2, 0, 'E', {
-      fontFamily: "'Cinzel', sans-serif",
+      fontFamily: "'Outfit', 'Cinzel', -apple-system, sans-serif",
       fontSize: '13px',
       fontStyle: 'bold',
       color: '#1a0b00'
     }).setOrigin(0.5, 0.5);
 
     // Prompt action label
-    this.promptLabel = this.scene.add.text(18, 0, 'Interact', {
-      fontFamily: "'Cinzel', Georgia, serif",
-      fontSize: '13px',
+    this.promptLabel = this.scene.add.text(18, 0, 'INTERACT', {
+      fontFamily: "'Outfit', 'Cinzel', -apple-system, sans-serif",
+      fontSize: '12.5px',
       fontStyle: '600',
-      color: '#fff3db',
-      stroke: '#000000',
+      color: '#fff4e0',
+      stroke: '#140802',
       strokeThickness: 2
     }).setOrigin(0, 0.5);
 
@@ -82,7 +82,8 @@ export class InteractionManager {
    * @param {string} actionText 
    */
   updatePromptAppearance(actionText) {
-    this.promptLabel.setText(actionText);
+    const displayText = (actionText || 'INTERACT').toUpperCase();
+    this.promptLabel.setText(displayText);
 
     const labelWidth = this.promptLabel.width;
     const totalWidth = labelWidth + 56;

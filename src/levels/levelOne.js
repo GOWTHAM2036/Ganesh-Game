@@ -1,8 +1,8 @@
 /** Level 1 data only. Future levels can follow this shape without changing GameScene. */
 export const LEVEL_ONE = {
   id: 1,
-  name: "Ganesha's Broken Temple",
-  subtitle: 'Prologue: The Shattered Outer Sanctum',
+  name: "Broken Entrance",
+  subtitle: "Sacred Threshold",
   worldWidth: 3840,
   spawn: { x: 180, y: 480 },
   theme: { backgroundPillars: [350, 750, 1150, 1600, 2050, 2450, 2900, 3350] },

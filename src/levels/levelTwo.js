@@ -6,8 +6,8 @@
  */
 export const LEVEL_TWO = {
   id: 2,
-  name: "The Fallen Courtyard",
-  subtitle: "THE COURTYARD OF SILENT WATERS",
+  name: "Fallen Courtyard",
+  subtitle: "Courtyard of Silent Waters",
   worldWidth: 3480,
   spawn: { x: 160, y: 480 },
   theme: {

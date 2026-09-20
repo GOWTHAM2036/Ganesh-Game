@@ -6,8 +6,8 @@
  */
 export const LEVEL_THREE = {
   id: 3,
-  name: "The Inner Halls",
-  subtitle: "WHERE THE ANCIENT BELLS SLEEP",
+  name: "Inner Halls",
+  subtitle: "Where the Ancient Bells Sleep",
   worldWidth: 2880,
   spawn: { x: 160, y: 480 },
   theme: {
