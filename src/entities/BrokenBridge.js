@@ -39,21 +39,31 @@ export class BrokenBridge extends RestorationPoint {
       originY: 1,
       bodyWidth: 80,
       bodyHeight: 70,
-      promptOffset: { x: 0, y: -90 },
+      promptOffset: { x: 30, y: -70 },
       ...config
     });
 
-    const span = config.bridgeSpan || { startX: 2740, endX: 3060, y: 580 };
+    // 1. REMOVE THE DUPLICATE EXTRA BRIDGE ON THE TERRACE:
+    // This BrokenBridge instance serves strictly as the interaction trigger anchor at the bridge abutment (x = 1950).
+    // Hide the duplicate bridge sprite and disable its collision body so the terrace floor is clean and open.
+    this.setVisible(false);
+    this.setActive(true);
+    if (this.body) {
+      this.body.enable = false; // Zero invisible collision bodies on the terrace
+    }
+
+    const span = config.bridgeSpan || { startX: 1980, endX: 2300, y: 580 };
     this.span = span;
     const spanWidth = span.endX - span.startX;
     const centerX = span.startX + spanWidth / 2;
     this.centerX = centerX;
 
-    // 1. Visual bridge spanning across the sunken chasm perfectly aligned with platform deck at span.y
+    // 2. The ONLY intended main bridge spanning across the sunken chasm waters (1980 to 2300)
+    // Perfectly aligned with the terrace floor deck at span.y = 580
     this.bridgeSprite = scene.add.image(centerX, span.y, 'bridge_broken').setOrigin(0.5, 0);
     this.bridgeSprite.setDepth(1);
 
-    // 2. Seamless ground platform slabs across the entire 320px bridge span (1980 to 2300)
+    // 3. Seamless ground platform slabs across the entire 320px bridge span (1980 to 2300)
     // Slabs match identical physics and height (y = 580) of Terrace D and Terrace E.
     this.bridgeSlabs = [];
     if (scene.platforms) {
@@ -67,12 +77,46 @@ export class BrokenBridge extends RestorationPoint {
       }
     }
 
-    // 3. Impassable Chasm Barrier while broken
+    // 4. Impassable Chasm Barrier while broken
     // Prevents sprinting or jumping across the 320px gap before solving the puzzle.
     this.createChasmBarrier();
 
-    // 4. Subtle atmospheric water spray and celestial updraft motes across the broken gap
+    // 5. Subtle atmospheric water spray and celestial updraft motes across the broken gap
     this.createWaterGlow();
+  }
+
+  /**
+   * Highlights the intended main bridge sprite when Ganesha is in interaction range
+   */
+  highlight(active) {
+    super.highlight(active);
+    if (this.bridgeSprite) {
+      if (active) {
+        this.bridgeSprite.setTint(0xffea88);
+      } else {
+        this.bridgeSprite.clearTint();
+      }
+    }
+  }
+
+  /**
+   * Ambient spiritual motes emanating from the bridge fracture at the edge of the chasm
+   */
+  createAmbientGaze() {
+    this.glowTimer = this.scene.time.addEvent({
+      delay: 700,
+      loop: true,
+      callback: () => {
+        if (!this.active || this.isRestored) return;
+        if (this.scene && this.scene.ambientEmitter) {
+          this.scene.ambientEmitter.explode(
+            2,
+            (this.span?.startX || 1980) + 15,
+            575
+          );
+        }
+      }
+    });
   }
 
   createChasmBarrier() {
@@ -116,9 +160,13 @@ export class BrokenBridge extends RestorationPoint {
   interact(player) {
     const success = super.interact(player);
     if (success) {
-      // 1. Visually restore the stone bridge structure
+      // Ensure the invisible trigger stays hidden
+      this.setVisible(false);
+
+      // 1. Visually restore the intended main stone bridge structure
       if (this.bridgeSprite) {
         this.bridgeSprite.setTexture('bridge_restored');
+        this.bridgeSprite.clearTint();
         this.scene.tweens.add({
           targets: this.bridgeSprite,
           scaleY: { from: 1.15, to: 1 },
@@ -161,8 +209,13 @@ export class BrokenBridge extends RestorationPoint {
 
   resetPoint() {
     super.resetPoint();
+    this.setVisible(false);
+    if (this.body) {
+      this.body.enable = false;
+    }
     if (this.bridgeSprite) {
       this.bridgeSprite.setTexture('bridge_broken');
+      this.bridgeSprite.clearTint();
     }
 
     // Disable walkable bridge slabs
