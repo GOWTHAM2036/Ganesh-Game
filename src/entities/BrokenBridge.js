@@ -4,9 +4,12 @@ import { RestorationPoint } from './RestorationPoint.js';
 /**
  * BrokenBridge Entity
  * An ancient carved stone and timber bridge spanning the sunken courtyard waters.
- * When in ruins, the center span is missing and impassable.
- * When restored by Lord Ganesha using Sacred Stones and his divine trunk,
- * it visually repairs and activates a solid stone platform so Ganesha can cross to the Altar.
+ * When in ruins, the center span is missing and an impassable chasm barrier prevents leaping across.
+ * Any attempt to jump across before restoration blocks Ganesha in mid-air, causing him to fall into
+ * the water hazard below.
+ * When restored by Lord Ganesha using 3 Sacred Stones and his divine trunk,
+ * the chasm barrier is permanently unsealed and solid ground slabs are seamlessly activated across
+ * the entire 320px gap connecting Terrace D and Terrace E.
  */
 export class BrokenBridge extends RestorationPoint {
   /**
@@ -44,26 +47,58 @@ export class BrokenBridge extends RestorationPoint {
     this.span = span;
     const spanWidth = span.endX - span.startX;
     const centerX = span.startX + spanWidth / 2;
+    this.centerX = centerX;
 
-    // Visual bridge spanning across the sunken chasm
+    // 1. Visual bridge spanning across the sunken chasm
     this.bridgeSprite = scene.add.image(centerX, span.y - 12, 'bridge_broken').setOrigin(0.5, 0.5);
     this.bridgeSprite.setDepth(1);
 
-    // Platform collider across bridge span
-    this.bridgePlatform = scene.platforms.create(centerX, span.y, 'platform_stone').setOrigin(0.5, 0);
-    this.bridgePlatform.body.setSize(spanWidth, 24);
-    this.bridgePlatform.body.setOffset(0, 0);
-    this.bridgePlatform.setVisible(false);
-    this.bridgePlatform.body.enable = false; // Initially impassable
-    this.bridgePlatform.refreshBody();
+    // 2. Seamless ground platform slabs across the entire 320px bridge span (2740 to 3060)
+    // Slabs match identical physics and height (y = 580) of Terrace D and Terrace E.
+    this.bridgeSlabs = [];
+    if (scene.platforms) {
+      const step = 128;
+      for (let bx = span.startX; bx <= span.endX; bx += step) {
+        const slab = scene.platforms.create(bx, span.y, 'ground_slab').setOrigin(0, 0);
+        slab.setVisible(false);
+        slab.refreshBody();
+        slab.body.enable = false; // Impassable until restored
+        this.bridgeSlabs.push(slab);
+      }
+    }
 
-    // Subtle water reflection particles near broken gap
+    // 3. Impassable Chasm Barrier while broken
+    // Prevents sprinting or jumping across the 320px gap before solving the puzzle.
+    this.createChasmBarrier();
+
+    // 4. Subtle atmospheric water spray and celestial updraft motes across the broken gap
     this.createWaterGlow();
+  }
+
+  createChasmBarrier() {
+    if (this.chasmBarrier) return;
+
+    // Static physics barrier at centerX spanning vertically from y = 0 to y = 680
+    this.chasmBarrier = this.scene.physics.add.staticSprite(this.centerX, 320, 'platform_stone');
+    this.chasmBarrier.setVisible(false);
+    this.chasmBarrier.refreshBody();
+    this.chasmBarrier.body.setSize(64, 680);
+    this.chasmBarrier.body.x = this.centerX - 32;
+    this.chasmBarrier.body.y = 0; // Spans y = 0 down to water level at y = 680
+
+    if (this.scene.player) {
+      this.chasmCollider = this.scene.physics.add.collider(this.scene.player, this.chasmBarrier, () => {
+        // Show immediate hint if player attempts to force their way across without restoring
+        if (!this.isRestored && this.scene.events) {
+          this.scene.events.emit('show-interaction-feedback', 'THE CHASM IS IMPASSABLE! RESTORE THE BRIDGE WITH 3 SACRED STONES.');
+        }
+      });
+    }
   }
 
   createWaterGlow() {
     this.bridgeWaterTimer = this.scene.time.addEvent({
-      delay: 800,
+      delay: 700,
       loop: true,
       callback: () => {
         if (!this.active || this.isRestored) return;
@@ -81,7 +116,7 @@ export class BrokenBridge extends RestorationPoint {
   interact(player) {
     const success = super.interact(player);
     if (success) {
-      // 1. Visually restore the bridge
+      // 1. Visually restore the stone bridge structure
       if (this.bridgeSprite) {
         this.bridgeSprite.setTexture('bridge_restored');
         this.scene.tweens.add({
@@ -92,17 +127,32 @@ export class BrokenBridge extends RestorationPoint {
         });
       }
 
-      // 2. Enable solid platform so player can cross
-      if (this.bridgePlatform) {
-        this.bridgePlatform.body.enable = true;
-        this.bridgePlatform.refreshBody();
+      // 2. Permanently disable the chasm barrier
+      if (this.chasmBarrier && this.chasmBarrier.body) {
+        this.chasmBarrier.body.enable = false;
+      }
+      if (this.chasmCollider) {
+        this.chasmCollider.destroy();
+        this.chasmCollider = null;
       }
 
-      // 3. Emit golden / cyan celestial particles across the bridge span
-      if (this.scene.shrineEmitter) {
-        for (let bx = this.span.startX + 30; bx <= this.span.endX - 30; bx += 45) {
-          this.scene.shrineEmitter.explode(12, bx, this.span.y - 12);
+      // 3. Enable seamless solid ground slabs so Ganesha can walk smoothly to Sanctum Terrace
+      this.bridgeSlabs.forEach(slab => {
+        if (slab && slab.body) {
+          slab.body.enable = true;
         }
+      });
+
+      // 4. Emit glorious golden & cyan celestial particles across the entire bridge span
+      if (this.scene.shrineEmitter) {
+        for (let bx = this.span.startX + 20; bx <= this.span.endX - 20; bx += 40) {
+          this.scene.shrineEmitter.explode(14, bx, this.span.y - 12);
+        }
+      }
+
+      // Camera shake for grand divine restoration effect
+      if (this.scene.cameras && this.scene.cameras.main) {
+        this.scene.cameras.main.shake(250, 0.005);
       }
     }
     return success;
@@ -113,10 +163,25 @@ export class BrokenBridge extends RestorationPoint {
     if (this.bridgeSprite) {
       this.bridgeSprite.setTexture('bridge_broken');
     }
-    if (this.bridgePlatform) {
-      this.bridgePlatform.body.enable = false;
-      this.bridgePlatform.refreshBody();
+
+    // Disable walkable bridge slabs
+    this.bridgeSlabs.forEach(slab => {
+      if (slab && slab.body) {
+        slab.body.enable = false;
+      }
+    });
+
+    // Re-enable impassable chasm barrier
+    if (this.chasmBarrier && this.chasmBarrier.body) {
+      this.chasmBarrier.body.enable = true;
+      this.chasmBarrier.body.setSize(64, 680);
+      this.chasmBarrier.body.x = this.centerX - 32;
+      this.chasmBarrier.body.y = 0;
     }
+    if (!this.chasmCollider && this.scene.player && this.chasmBarrier) {
+      this.chasmCollider = this.scene.physics.add.collider(this.scene.player, this.chasmBarrier);
+    }
+
     if (this.bridgeWaterTimer) {
       this.bridgeWaterTimer.remove();
       this.bridgeWaterTimer = null;
@@ -129,9 +194,18 @@ export class BrokenBridge extends RestorationPoint {
       this.bridgeSprite.destroy();
       this.bridgeSprite = null;
     }
-    if (this.bridgePlatform) {
-      this.bridgePlatform.destroy();
-      this.bridgePlatform = null;
+    this.bridgeSlabs.forEach(slab => {
+      if (slab) slab.destroy();
+    });
+    this.bridgeSlabs = [];
+
+    if (this.chasmCollider) {
+      this.chasmCollider.destroy();
+      this.chasmCollider = null;
+    }
+    if (this.chasmBarrier) {
+      this.chasmBarrier.destroy();
+      this.chasmBarrier = null;
     }
     if (this.bridgeWaterTimer) {
       this.bridgeWaterTimer.remove();

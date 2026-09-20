@@ -31,6 +31,7 @@ export class TextureGenerator {
     this.createMovableStoneTexture(scene);
     this.createDivineSwitchTextures(scene);
     this.createTempleGateTexture(scene);
+    this.createTempleGateArchTexture(scene);
     this.createCollectibleTextures(scene);
     this.createRestorationPillarTextures(scene);
     this.createLevelTwoTextures(scene);
@@ -720,49 +721,250 @@ export class TextureGenerator {
   }
 
   /**
-   * Temple Gate Portcullis (48x120)
+   * Temple Gate Portcullis Grille (56x140)
+   * Heavy bronze and charcoal iron portcullis with spiked chisel teeth and sacred medallion.
    */
   static createTempleGateTexture(scene) {
     if (scene.textures.exists('temple_gate')) return;
-    const canvas = scene.textures.createCanvas('temple_gate', 48, 120);
+    const canvas = scene.textures.createCanvas('temple_gate', 56, 140);
     const ctx = canvas.getContext();
 
-    // Heavy Stone & Bronze Portcullis
+    // Heavy Stone & Charcoal Iron Perimeter Frame
     ArtDirection.drawBeveledStone(
-      ctx, 0, 0, 48, 120,
+      ctx, 0, 0, 56, 140,
       TEMPLE_PALETTE.stoneCharcoal,
       TEMPLE_PALETTE.stoneMid,
       TEMPLE_PALETTE.stoneDarkest,
-      3
+      2.5
     );
 
-    // Vertical Iron Grille Bars
-    ctx.fillStyle = TEMPLE_PALETTE.bronzeDark;
-    for (let x = 8; x <= 40; x += 10) {
-      ctx.fillRect(x - 2, 6, 4, 108);
-      ctx.fillStyle = TEMPLE_PALETTE.bronzeHighlight;
-      ctx.fillRect(x, 6, 1.5, 108);
-      ctx.fillStyle = TEMPLE_PALETTE.bronzeDark;
-    }
+    // Dark recessed grill chamber interior
+    ctx.fillStyle = '#18121d';
+    ctx.fillRect(4, 4, 48, 132);
 
-    // Heavy Horizontal Bronze Cross-Bands with Studs
-    const bands = [12, 45, 78, 106];
+    // 5 Heavy Vertical Bronze & Iron Grille Bars with Chisel Spearhead Tips
+    const barXs = [9, 18, 28, 38, 47];
+    barXs.forEach(bx => {
+      // Main vertical bar shaft
+      ctx.fillStyle = TEMPLE_PALETTE.bronzeDark;
+      ctx.fillRect(bx - 2, 4, 4, 122);
+      ctx.fillStyle = TEMPLE_PALETTE.bronzeHighlight;
+      ctx.fillRect(bx - 0.5, 4, 1.5, 122);
+
+      // Pointed chisel spearhead teeth projecting at bottom
+      ctx.fillStyle = TEMPLE_PALETTE.bronzeBase;
+      ctx.beginPath();
+      ctx.moveTo(bx - 3, 126);
+      ctx.lineTo(bx, 138);
+      ctx.lineTo(bx + 3, 126);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = TEMPLE_PALETTE.goldBright;
+      ctx.beginPath();
+      ctx.moveTo(bx - 0.5, 126);
+      ctx.lineTo(bx, 138);
+      ctx.lineTo(bx + 1, 126);
+      ctx.closePath();
+      ctx.fill();
+    });
+
+    // 4 Heavy Horizontal Reinforced Bronze Cross-Bands with Gold Rivet Studs
+    const bands = [10, 48, 86, 120];
     bands.forEach(by => {
       ArtDirection.drawBeveledStone(
-        ctx, 0, by, 48, 10,
+        ctx, 1, by, 54, 10,
         TEMPLE_PALETTE.bronzeBase,
         TEMPLE_PALETTE.bronzeHighlight,
         TEMPLE_PALETTE.bronzeDark,
         1.5
       );
-      // Bronze rivets/studs
+      // Sacred gold rivets along the cross-band
       ctx.fillStyle = TEMPLE_PALETTE.goldBright;
-      for (let rx = 6; rx <= 42; rx += 10) {
+      for (let rx = 7; rx <= 49; rx += 10) {
         ctx.beginPath();
-        ctx.arc(rx, by + 5, 2, 0, Math.PI * 2);
+        ctx.arc(rx, by + 5, 2.2, 0, Math.PI * 2);
         ctx.fill();
+        ctx.fillStyle = TEMPLE_PALETTE.goldDark;
+        ctx.beginPath();
+        ctx.arc(rx + 0.8, by + 5.8, 1, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = TEMPLE_PALETTE.goldBright;
       }
     });
+
+    // Central Sacred Bronze & Gold Medallion with Lotus Motif
+    const midX = 28;
+    const midY = 67;
+    ctx.fillStyle = TEMPLE_PALETTE.bronzeDark;
+    ctx.beginPath();
+    ctx.arc(midX, midY, 13, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = TEMPLE_PALETTE.goldBase;
+    ctx.beginPath();
+    ctx.arc(midX, midY, 10, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = TEMPLE_PALETTE.goldBright;
+    ctx.beginPath();
+    ctx.arc(midX, midY, 5, 0, Math.PI * 2);
+    ctx.fill();
+
+    canvas.refresh();
+  }
+
+  /**
+   * Monumental Temple Gateway Torana Arch (112x460)
+   * Handcrafted Indian Dravidian / Nagara temple gateway structure.
+   * Flanked by massive carved stone pillars, capped with multi-tiered shikhara pediment
+   * and sacred kalasha finial that extends solidly to the ceiling.
+   */
+  static createTempleGateArchTexture(scene) {
+    if (scene.textures.exists('temple_gate_arch')) return;
+    const canvas = scene.textures.createCanvas('temple_gate_arch', 112, 460);
+    const ctx = canvas.getContext();
+
+    // 1. Left Flanking Carved Pillar (width 28, height 460 from top to ground)
+    ArtDirection.drawCarvedPillar(ctx, 0, 0, 28, 460, {
+      stoneBase: TEMPLE_PALETTE.sandstoneBase,
+      stoneHighlight: TEMPLE_PALETTE.sandstoneHighlight,
+      stoneShadow: TEMPLE_PALETTE.sandstoneShadow,
+      isRestored: false
+    });
+
+    // 2. Right Flanking Carved Pillar (width 28, height 460 from top to ground)
+    ArtDirection.drawCarvedPillar(ctx, 84, 0, 28, 460, {
+      stoneBase: TEMPLE_PALETTE.sandstoneBase,
+      stoneHighlight: TEMPLE_PALETTE.sandstoneHighlight,
+      stoneShadow: TEMPLE_PALETTE.sandstoneShadow,
+      isRestored: false
+    });
+
+    // Portal opening is between x: 28 and x: 84 (width 56), from y: 320 to y: 460 (height 140).
+    // This region is left transparent so the sliding portcullis is cleanly visible.
+
+    // 3. Heavy Stone Lintel Beam across doorway (spanning x: 0 to 112, y: 295 to 326)
+    ArtDirection.drawBeveledStone(
+      ctx, 0, 295, 112, 28,
+      TEMPLE_PALETTE.sandstoneMid,
+      TEMPLE_PALETTE.sandstoneSunlit,
+      TEMPLE_PALETTE.sandstoneShadow,
+      3
+    );
+
+    // Deep recessed portcullis slot inside the lintel underside (between x: 28 and 84)
+    ctx.fillStyle = '#100b14';
+    ctx.fillRect(26, 318, 60, 8);
+
+    // Cusped Indian Torana Arch curve molding framing the portal opening
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(28, 335);
+    ctx.quadraticCurveTo(28, 320, 44, 320);
+    ctx.arc(56, 320, 12, Math.PI, 0, false);
+    ctx.quadraticCurveTo(84, 320, 84, 335);
+    ctx.strokeStyle = TEMPLE_PALETTE.sandstoneSunlit;
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+    ctx.restore();
+
+    // Sacred Inscription Frieze on Lintel Beam
+    ctx.fillStyle = TEMPLE_PALETTE.goldBase;
+    ctx.font = "bold 13px 'Cinzel', serif";
+    ctx.textAlign = 'center';
+    ctx.fillText("ॐ", 56, 314);
+
+    // Carved lotus medallions on left and right lintel brackets
+    [14, 98].forEach(mx => {
+      ctx.fillStyle = TEMPLE_PALETTE.sandstoneShadow;
+      ctx.beginPath();
+      ctx.arc(mx, 309, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = TEMPLE_PALETTE.goldDark;
+      ctx.beginPath();
+      ctx.arc(mx, 309, 3, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    // 4. Multi-tiered stepped Gopuram / Shikhara masonry rising to the ceiling (y: 0 to 295)
+    const tiers = [
+      { y: 250, h: 45, w: 104, x: 4 },
+      { y: 200, h: 50, w: 94,  x: 9 },
+      { y: 145, h: 55, w: 82,  x: 15 },
+      { y: 90,  h: 55, w: 70,  x: 21 },
+      { y: 40,  h: 50, w: 56,  x: 28 }
+    ];
+
+    tiers.forEach((t, i) => {
+      ArtDirection.drawBeveledStone(
+        ctx, t.x, t.y, t.w, t.h,
+        TEMPLE_PALETTE.sandstoneBase,
+        TEMPLE_PALETTE.sandstoneHighlight,
+        TEMPLE_PALETTE.sandstoneShadow,
+        2.5
+      );
+
+      // Carved cornice molding at top of each tier
+      ArtDirection.drawBeveledStone(
+        ctx, t.x - 2, t.y, t.w + 4, 8,
+        TEMPLE_PALETTE.sandstoneMid,
+        TEMPLE_PALETTE.sandstoneSunlit,
+        TEMPLE_PALETTE.sandstoneShadow,
+        1.5
+      );
+
+      // Carved Temple Niche / Kudus on each tier
+      const nicheW = 16 + i * 2;
+      const nicheH = t.h - 18;
+      const nicheX = 56 - nicheW / 2;
+      const nicheY = t.y + 12;
+      ctx.fillStyle = TEMPLE_PALETTE.stoneDeepShadow;
+      ctx.beginPath();
+      ctx.moveTo(nicheX, nicheY + nicheH);
+      ctx.lineTo(nicheX, nicheY + 6);
+      ctx.quadraticCurveTo(nicheX + nicheW / 2, nicheY - 4, nicheX + nicheW, nicheY + 6);
+      ctx.lineTo(nicheX + nicheW, nicheY + nicheH);
+      ctx.closePath();
+      ctx.fill();
+
+      // Golden sacred glyph inside tier niche
+      ctx.fillStyle = TEMPLE_PALETTE.goldDark;
+      ctx.beginPath();
+      ctx.arc(56, nicheY + nicheH / 2, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Stone relief dentils / lotus carvings along tier edge
+      ctx.fillStyle = TEMPLE_PALETTE.sandstoneShadow;
+      for (let dx = t.x + 4; dx < t.x + t.w - 4; dx += 8) {
+        ctx.fillRect(dx, t.y + 6, 4, 3);
+      }
+    });
+
+    // 5. Sacred Golden Kalasha Finial Spire (y: 0 to 40)
+    const centerX = 56;
+    // Golden Kalasha Urn
+    ctx.fillStyle = TEMPLE_PALETTE.goldBase;
+    ctx.beginPath();
+    ctx.arc(centerX, 28, 9, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = TEMPLE_PALETTE.goldBright;
+    ctx.beginPath();
+    ctx.arc(centerX - 2, 26, 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Kalasha Spire Needle reaching the top
+    ctx.fillStyle = TEMPLE_PALETTE.goldMid;
+    ctx.beginPath();
+    ctx.moveTo(centerX - 5, 22);
+    ctx.lineTo(centerX, 2);
+    ctx.lineTo(centerX + 5, 22);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = TEMPLE_PALETTE.goldBright;
+    ctx.beginPath();
+    ctx.moveTo(centerX - 1.5, 22);
+    ctx.lineTo(centerX, 2);
+    ctx.lineTo(centerX + 1.5, 22);
+    ctx.closePath();
+    ctx.fill();
 
     canvas.refresh();
   }

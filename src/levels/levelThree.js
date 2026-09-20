@@ -92,12 +92,10 @@ export const LEVEL_THREE = {
   decorations: [
     { x: 100, y: 580, texture: 'pillar', originX: 0.5, originY: 1, tint: 0x3a2216 },
     { x: 440, y: 460, texture: 'inner_lamp', originX: 0.5, originY: 0.5 },
-    { x: 600, y: 460, texture: 'pillar', originX: 0.5, originY: 1, tint: 0x3a2216 },
     { x: 920, y: 580, texture: 'inner_wall', originX: 0.5, originY: 1 },
     { x: 1220, y: 480, texture: 'inner_lamp', originX: 0.5, originY: 0.5 },
     { x: 1520, y: 580, texture: 'pillar', originX: 0.5, originY: 1, tint: 0x3a2216 },
     { x: 1780, y: 450, texture: 'inner_lamp', originX: 0.5, originY: 0.5 },
-    { x: 2100, y: 460, texture: 'pillar', originX: 0.5, originY: 1, tint: 0x3a2216 },
     { x: 2500, y: 580, texture: 'inner_wall', originX: 0.5, originY: 1 },
     { x: 2680, y: 580, texture: 'pillar', originX: 0.5, originY: 1, tint: 0x3a2216 },
     { x: 2860, y: 580, texture: 'pillar', originX: 0.5, originY: 1, tint: 0x3a2216 }

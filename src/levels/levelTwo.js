@@ -89,7 +89,6 @@ export const LEVEL_TWO = {
     { x: 340, y: 580, texture: 'fallen_column', originX: 0.5, originY: 1 },
     { x: 520, y: 580, texture: 'broken_statue', originX: 0.5, originY: 1 },
     { x: 1500, y: 580, texture: 'broken_pillar', originX: 0.5, originY: 1 },
-    { x: 1980, y: 460, texture: 'pillar', originX: 0.5, originY: 1 },
     { x: 2020, y: 580, texture: 'broken_statue', originX: 0.5, originY: 1 },
     { x: 2600, y: 580, texture: 'fallen_column', originX: 0.5, originY: 1 },
     { x: 3100, y: 580, texture: 'pillar', originX: 0.5, originY: 1 },
