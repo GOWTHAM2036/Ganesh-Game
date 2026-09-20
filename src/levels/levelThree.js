@@ -8,10 +8,10 @@ export const LEVEL_THREE = {
   id: 3,
   name: "Inner Halls",
   subtitle: "Where the Ancient Bells Sleep",
-  worldWidth: 2880,
-  spawn: { x: 160, y: 480 },
+  worldWidth: 2320,
+  spawn: { x: 120, y: 480 },
   theme: {
-    backgroundPillars: [240, 580, 940, 1340, 1700, 2060, 2420, 2760],
+    backgroundPillars: [200, 480, 780, 1100, 1420, 1720, 2020, 2240],
     pillarTint: 0x3a2216,
     skyTint: 0x241122,
     ruinsTint: 0x381f14
@@ -19,54 +19,53 @@ export const LEVEL_THREE = {
   hazards: { fallBoundary: 820 },
   platforms: {
     ground: [
-      [0, 640, 580],      // Section A: Inner Hall Entrance
-      [840, 1340, 580],   // Section B: First Mechanism Terrace
-      [1500, 2120, 580],  // Section C: The Silent Bells Chamber
-      [2180, 2540, 580],  // Section D: Forgotten Shrine Terrace
-      [2640, 2880, 580]   // Section E: Inner Sanctum Altar Terrace
+      [0, 480, 580],      // Section A: Inner Hall Entrance & Gate 1
+      [680, 1080, 580],   // Section B: First Mechanism Terrace
+      [1260, 1840, 580],  // Section C: The Sacred Bells Chamber & Gate 2
+      [1980, 2320, 580]   // Section D: Forgotten Shrine & Sanctum Altar
     ],
     floating: [
-      [740, 530],   // Section A-B Chasm Step
-      [1420, 510],  // Section B-C Chasm Step
-      [1920, 390],  // Section C: Bell 2 Floating Platform
-      [2580, 520]   // Section D-E Chasm Step
+      [580, 530],   // Section A-B Chasm Step
+      [1170, 510],  // Section B-C Chasm Step
+      [1600, 390],  // Section C: Bell 2 Floating Platform
+      [1910, 520]   // Section C-D Chasm Step
     ],
     pillars: [
-      [1080, 460],  // Section B: Elevated Pillar
-      [1640, 440]   // Section C: Bell 1 Pillar Platform
+      [880, 460],   // Section B: Elevated Pillar
+      [1380, 440]   // Section C: Bell 1 Pillar Platform
     ]
   },
   collectibles: {
     modak: [
-      [240, 535], [340, 535], [900, 535], [1200, 535],
-      [1560, 535], [1780, 535], [2020, 535], [2700, 535]
+      [200, 535], [360, 535], [740, 535], [1020, 535],
+      [1320, 535], [1500, 535], [1780, 535], [2260, 535]
     ],
     sacredStone: [
-      [1080, 410],  // Section B elevated pillar
-      [1780, 430],  // Section C between bells
-      [2260, 510]   // Section D approaching forgotten shrine
+      [880, 400],   // Section B: Elevated pillar
+      [1520, 440],  // Section C: Chamber between bells
+      [2020, 510]   // Section D: Approaching forgotten shrine
     ],
     lotus: [
-      [1640, 480],  // Section C below Bell 1
-      [1920, 440]   // Section C below Bell 2
+      [1380, 480],  // Section C: Below Bell 1
+      [1600, 440]   // Section C: Below Bell 2
     ],
     templeCoin: [
-      [280, 535], [480, 535], [740, 480], [980, 535], [1300, 535],
-      [1420, 460], [1700, 535], [1840, 535], [2460, 535], [2840, 535]
+      [160, 535], [280, 535], [580, 470], [800, 535], [1170, 450],
+      [1440, 535], [1660, 535], [1910, 460], [2060, 535], [2180, 535]
     ],
     scripture: [
-      [1640, 535]   // Section C Chamber Inscription
+      [1470, 535]   // Section C: Chamber Inscription Tablet
     ]
   },
   interactions: {
-    lever: { x: 380, y: 580 },
-    lamp: { x: 440, y: 510 },
-    gate1: { x: 600, y: 520 },
+    lever: { x: 240, y: 580 },
+    lamp: { x: 300, y: 510 },
+    gate1: { x: 420, y: 520 },
     bells: [
-      { id: 'bell_1', x: 1640, y: 360, name: 'First Sacred Bell' },
-      { id: 'bell_2', x: 1920, y: 310, name: 'Second Sacred Bell' }
+      { id: 'bell_1', x: 1380, y: 360, name: 'First Sacred Bell' },
+      { id: 'bell_2', x: 1600, y: 310, name: 'Second Sacred Bell' }
     ],
-    gate2: { x: 2100, y: 520 }
+    gate2: { x: 1740, y: 520 }
   },
   restorations: [
     {
@@ -74,7 +73,7 @@ export const LEVEL_THREE = {
       type: "forgotten_shrine",
       name: "Forgotten Shrine",
       structureName: "shrine",
-      x: 2360,
+      x: 2110,
       y: 580,
       requiredResource: "sacredStones",
       requiredAmount: 3,
@@ -90,15 +89,14 @@ export const LEVEL_THREE = {
     }
   ],
   decorations: [
-    { x: 100, y: 580, texture: 'pillar', originX: 0.5, originY: 1, tint: 0x3a2216 },
-    { x: 440, y: 460, texture: 'inner_lamp', originX: 0.5, originY: 0.5 },
-    { x: 920, y: 580, texture: 'inner_wall', originX: 0.5, originY: 1 },
-    { x: 1220, y: 480, texture: 'inner_lamp', originX: 0.5, originY: 0.5 },
-    { x: 1520, y: 580, texture: 'pillar', originX: 0.5, originY: 1, tint: 0x3a2216 },
-    { x: 1780, y: 450, texture: 'inner_lamp', originX: 0.5, originY: 0.5 },
-    { x: 2500, y: 580, texture: 'inner_wall', originX: 0.5, originY: 1 },
-    { x: 2680, y: 580, texture: 'pillar', originX: 0.5, originY: 1, tint: 0x3a2216 },
-    { x: 2860, y: 580, texture: 'pillar', originX: 0.5, originY: 1, tint: 0x3a2216 }
+    { x: 80, y: 580, texture: 'pillar', originX: 0.5, originY: 1, tint: 0x3a2216 },
+    { x: 300, y: 460, texture: 'inner_lamp', originX: 0.5, originY: 0.5 },
+    { x: 740, y: 580, texture: 'inner_wall', originX: 0.5, originY: 1 },
+    { x: 1040, y: 480, texture: 'inner_lamp', originX: 0.5, originY: 0.5 },
+    { x: 1300, y: 580, texture: 'pillar', originX: 0.5, originY: 1, tint: 0x3a2216 },
+    { x: 1540, y: 450, texture: 'inner_lamp', originX: 0.5, originY: 0.5 },
+    { x: 2000, y: 580, texture: 'inner_wall', originX: 0.5, originY: 1 },
+    { x: 2280, y: 580, texture: 'pillar', originX: 0.5, originY: 1, tint: 0x3a2216 }
   ],
-  goal: { x: 2780, y: 460 }
+  goal: { x: 2220, y: 460 }
 };

@@ -8,10 +8,10 @@ export const LEVEL_TWO = {
   id: 2,
   name: "Fallen Courtyard",
   subtitle: "Courtyard of Silent Waters",
-  worldWidth: 3480,
-  spawn: { x: 160, y: 480 },
+  worldWidth: 2600,
+  spawn: { x: 120, y: 480 },
   theme: {
-    backgroundPillars: [280, 680, 1100, 1550, 1980, 2420, 2850, 3250],
+    backgroundPillars: [220, 540, 880, 1200, 1540, 1860, 2180, 2460],
     pillarTint: 0x446677,
     skyTint: 0x99aacc,
     ruinsTint: 0x556b82
@@ -19,58 +19,58 @@ export const LEVEL_TWO = {
   hazards: { fallBoundary: 820 },
   platforms: {
     ground: [
-      [0, 680, 580],      // Section A: Courtyard Entrance
-      [1400, 2080, 580],  // Section C: Courtyard Terrace
-      [2540, 2740, 580],  // Section D: Pre-Bridge Landing Terrace
-      [3060, 3480, 580]   // Section E: Courtyard Sanctum Terrace
+      [0, 480, 580],      // Section A: Courtyard Entrance
+      [920, 1420, 580],   // Section C: Courtyard Terrace & Torana Gate
+      [1800, 1980, 580],  // Section D: Pre-Bridge Landing Terrace
+      [2300, 2600, 580]   // Section E: Courtyard Sanctum Terrace
     ],
     floating: [
-      [840, 530],   // Section B: Chasm 1 Step 1
-      [1240, 490],  // Section B: Chasm 1 Step 3
-      [2220, 520]   // Section D: Chasm 2 Step 1
+      [580, 520],   // Section B: Chasm 1 Step 1
+      [820, 500],   // Section B: Chasm 1 Step 2
+      [1540, 510]   // Section D: Chasm 2 Step 1
     ],
     pillars: [
-      [1040, 460],  // Section B: Elevated Pillar Platform
-      [2400, 480]   // Section D: Chasm 2 Pillar Platform
+      [700, 460],   // Section B: Elevated Pillar Platform
+      [1680, 470]   // Section D: Chasm 2 Pillar Platform
     ]
   },
   water: [
-    [700, 1380, 660],
-    [2100, 2520, 660],
-    [2750, 3050, 660]
+    [490, 910, 660],
+    [1430, 1790, 660],
+    [1990, 2290, 660]
   ],
   collectibles: {
     modak: [
-      [220, 535], [420, 535], [840, 460], [1240, 420],
-      [1660, 535], [2400, 410], [3120, 535], [3260, 535]
+      [220, 535], [380, 535], [820, 440], [1080, 535],
+      [1320, 535], [1680, 350], [2360, 535], [2520, 535]
     ],
     sacredStone: [
-      [620, 510],   // Section A
-      [1460, 510],  // Section B landing
-      [2220, 450]   // Section D floating stepping stone
+      [440, 510],   // Section A: Entrance stone
+      [980, 510],   // Section C: Courtyard Terrace landing
+      [1680, 400]   // Section D: Elevated pillar before bridge
     ],
     lotus: [
-      [1040, 380],  // Section B elevated pillar
-      [3200, 490]   // Section E sanctum terrace
+      [700, 380],   // Section B: Elevated pillar
+      [2420, 490]   // Section E: Sanctum terrace
     ],
     templeCoin: [
-      [280, 535], [480, 535], [760, 500], [940, 470], [1140, 450],
-      [1560, 535], [1720, 535], [2150, 480], [2310, 470], [2640, 535]
+      [180, 535], [300, 535], [580, 460], [700, 330],
+      [1020, 535], [1200, 535], [1540, 450], [1860, 535], [1910, 535], [2400, 535]
     ],
     scripture: [
-      [1840, 505]   // Section C Courtyard Terrace
+      [1360, 505]   // Section C: Courtyard Terrace Inscription
     ]
   },
   interactions: {
-    divineSwitch: { x: 1780, y: 568 },
-    gate: { x: 1980, y: 520 }
+    divineSwitch: { x: 1140, y: 568 },
+    gate: { x: 1280, y: 520 }
   },
   restorations: [
     {
       id: "broken_bridge",
       type: "broken_bridge",
       name: "Broken Bridge",
-      x: 2710,
+      x: 1950,
       y: 580,
       requiredResource: "sacredStones",
       requiredAmount: 3,
@@ -81,18 +81,18 @@ export const LEVEL_TWO = {
       restoredObjective: "Reach the Sacred Altar.",
       brokenTexture: "bridge_broken",
       restoredTexture: "bridge_restored",
-      bridgeSpan: { startX: 2740, endX: 3060, y: 580 }
+      bridgeSpan: { startX: 1980, endX: 2300, y: 580 }
     }
   ],
   decorations: [
-    { x: 100, y: 580, texture: 'pillar', originX: 0.5, originY: 1 },
-    { x: 340, y: 580, texture: 'fallen_column', originX: 0.5, originY: 1 },
-    { x: 520, y: 580, texture: 'broken_statue', originX: 0.5, originY: 1 },
-    { x: 1500, y: 580, texture: 'broken_pillar', originX: 0.5, originY: 1 },
-    { x: 2020, y: 580, texture: 'broken_statue', originX: 0.5, originY: 1 },
-    { x: 2600, y: 580, texture: 'fallen_column', originX: 0.5, originY: 1 },
-    { x: 3100, y: 580, texture: 'pillar', originX: 0.5, originY: 1 },
-    { x: 3420, y: 580, texture: 'pillar', originX: 0.5, originY: 1 }
+    { x: 80, y: 580, texture: 'pillar', originX: 0.5, originY: 1 },
+    { x: 260, y: 580, texture: 'fallen_column', originX: 0.5, originY: 1 },
+    { x: 400, y: 580, texture: 'broken_statue', originX: 0.5, originY: 1 },
+    { x: 960, y: 580, texture: 'broken_pillar', originX: 0.5, originY: 1 },
+    { x: 1340, y: 580, texture: 'broken_statue', originX: 0.5, originY: 1 },
+    { x: 1840, y: 580, texture: 'fallen_column', originX: 0.5, originY: 1 },
+    { x: 2340, y: 580, texture: 'pillar', originX: 0.5, originY: 1 },
+    { x: 2560, y: 580, texture: 'pillar', originX: 0.5, originY: 1 }
   ],
-  goal: { x: 3320, y: 460 }
+  goal: { x: 2480, y: 460 }
 };

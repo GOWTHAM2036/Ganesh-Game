@@ -1,38 +1,73 @@
-/** Level 1 data only. Future levels can follow this shape without changing GameScene. */
+/** 
+ * Level 1 Configuration: Broken Entrance
+ * "SACRED THRESHOLD"
+ * Handcrafted introductory level with rhythmic pacing, welcoming jumps,
+ * interactive lever & diya, divine switch & torana gate, and the Broken Entrance Pillar.
+ */
 export const LEVEL_ONE = {
   id: 1,
   name: "Broken Entrance",
   subtitle: "Sacred Threshold",
-  worldWidth: 3840,
-  spawn: { x: 180, y: 480 },
-  theme: { backgroundPillars: [350, 750, 1150, 1600, 2050, 2450, 2900, 3350] },
+  worldWidth: 2600,
+  spawn: { x: 140, y: 480 },
+  theme: { backgroundPillars: [240, 520, 800, 1100, 1400, 1750, 2100, 2400] },
   hazards: { fallBoundary: 820 },
   platforms: {
-    ground: [[0, 640, 580], [1300, 1750, 580], [2500, 2800, 540], [3420, 3850, 440]],
-    floating: [[880, 540], [1060, 500], [1940, 540], [2240, 460], [2980, 490], [3280, 410]],
-    pillars: [[1220, 520], [2100, 490], [2400, 490], [3140, 450]]
+    ground: [
+      [0, 560, 580],      // Section 1: Sacred Threshold Terrace
+      [1020, 1540, 580],  // Section 2: Broken Entrance Terrace & Torana Gate
+      [2060, 2600, 440]   // Section 3: Sacred Sanctum Altar Terrace
+    ],
+    floating: [
+      [680, 530],   // Chasm 1: Step 1
+      [820, 480],   // Chasm 1: Step 2
+      [1650, 520],  // Chasm 2: Ascent Step 1
+      [1910, 430]   // Chasm 2: Ascent Step 3
+    ],
+    pillars: [
+      [940, 500],   // Chasm 1: Stepping Pillar
+      [1780, 470]   // Chasm 2: High Stepping Pillar
+    ]
   },
   collectibles: {
-    modak: [[240, 535], [700, 535], [880, 468], [1060, 428], [1450, 535], [1940, 468], [2240, 388], [2980, 418]],
-    sacredStone: [[340, 470], [620, 510], [1220, 452]],
-    lotus: [[1060, 370], [3140, 355]],
-    templeCoin: [[470, 535], [790, 535], [970, 465], [1140, 440], [1540, 535], [1810, 535], [2100, 422], [2320, 430], [2700, 495], [3280, 328]],
-    scripture: [[1720, 505]]
+    modak: [
+      [210, 535], [410, 535], [820, 420], [1200, 535],
+      [1510, 535], [1780, 400], [1910, 360], [2220, 395]
+    ],
+    sacredStone: [
+      [360, 480],   // Section 1: Above sacred lamp
+      [940, 430],   // Chasm 1: Atop stepping pillar
+      [1160, 490]   // Section 2: Pre-entrance terrace floating orb
+    ],
+    lotus: [
+      [820, 360],   // Chasm 1: High above floating step
+      [2420, 370]   // Section 3: Sacred Sanctum offering
+    ],
+    templeCoin: [
+      [170, 535], [290, 535], [480, 500], [680, 465], [750, 430],
+      [1060, 535], [1320, 535], [1480, 505], [1650, 455], [2140, 395], [2360, 395]
+    ],
+    scripture: [
+      [1480, 505]   // Section 2: Ancient stone tablet past the gate
+    ]
   },
   interactions: {
-    lamp: { x: 420, y: 546 }, lever: { x: 340, y: 556 }, stone: { x: 580, y: 548 },
-    gate: { x: 1640, y: 520 }, divineSwitch: { x: 1500, y: 568 }
+    lever: { x: 260, y: 580 },
+    lamp: { x: 330, y: 546 },
+    stone: { x: 470, y: 548 },
+    divineSwitch: { x: 1220, y: 568 },
+    gate: { x: 1380, y: 520 }
   },
   restorations: [
     {
       id: "entrance_pillar",
       type: "broken_pillar",
       name: "Broken Entrance Pillar",
-      x: 1350,
+      x: 1090,
       y: 580,
       requiredResource: "sacredStones",
       requiredAmount: 3
     }
   ],
-  goal: { x: 3640, y: 360 }
+  goal: { x: 2320, y: 360 }
 };
